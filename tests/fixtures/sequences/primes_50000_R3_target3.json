@@ -1,0 +1,1 @@
+{"name":"primes_R3","variables":[{"name":"R3","abbrev":"A","cardinality":3,"values":["0","1","2"],"isDependent":false},{"name":"R3","abbrev":"Z","cardinality":3,"values":["0","1","2"],"isDependent":true}],"data":[["0","2"],["1","1"],["2","0"],["1","2"],["2","2"],["2","1"]],"counts":[1.0,1027.0,1.0,1528.0,1046.0,1529.0]}

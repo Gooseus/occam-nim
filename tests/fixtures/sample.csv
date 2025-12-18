@@ -1,0 +1,11 @@
+Gender,Education,Income,Satisfied
+M,High,Low,Yes
+F,High,Medium,Yes
+M,Low,Low,No
+F,Medium,High,Yes
+M,Medium,Medium,No
+F,Low,Low,No
+M,High,High,Yes
+F,High,Medium,Yes
+M,Low,Medium,No
+F,Medium,Low,No

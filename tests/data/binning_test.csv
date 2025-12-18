@@ -1,0 +1,16 @@
+Age,Income,City,Status
+25,35000,NYC,Active
+32,52000,LA,Active
+45,78000,NYC,Inactive
+28,41000,Chicago,Active
+55,92000,Boston,Inactive
+38,63000,NYC,Active
+22,28000,LA,Active
+61,105000,NYC,Inactive
+35,55000,Chicago,Active
+48,85000,Other,Active
+29,44000,NYC,Active
+42,71000,LA,Inactive
+33,50000,Boston,Active
+57,95000,NYC,Active
+26,37000,Chicago,Inactive

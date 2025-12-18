@@ -1,0 +1,33 @@
+{
+  "name": "Sample Dataset",
+  "variables": [
+    {
+      "name": "Age",
+      "abbrev": "A",
+      "cardinality": 3,
+      "values": ["Young", "Middle", "Old"]
+    },
+    {
+      "name": "Income",
+      "abbrev": "I",
+      "cardinality": 2,
+      "values": ["Low", "High"]
+    },
+    {
+      "name": "Education",
+      "abbrev": "E",
+      "cardinality": 2,
+      "values": ["HS", "College"],
+      "isDependent": true
+    }
+  ],
+  "data": [
+    ["Young", "Low", "HS"],
+    ["Young", "High", "College"],
+    ["Middle", "Low", "HS"],
+    ["Middle", "High", "College"],
+    ["Old", "Low", "HS"],
+    ["Old", "High", "College"]
+  ],
+  "counts": [10, 15, 8, 20, 5, 12]
+}
