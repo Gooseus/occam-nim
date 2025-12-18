@@ -26,8 +26,27 @@ nimble install occam
 git clone https://github.com/yourrepo/occam-nim
 cd occam-nim
 nimble install -d   # Install dependencies
-nimble build        # Build CLI (optional)
 nimble test         # Run tests
+```
+
+### Building Components
+
+OCCAM-Nim is organized as a multi-package monorepo. Build only what you need:
+
+```bash
+# Core library only (installed with nimble install)
+nimble test         # Run library tests
+
+# CLI tool
+nimble cli          # Build CLI to bin/cli
+
+# Web server (requires prologue, chronicles)
+cd packages/occam_web && nimble install -d
+nimble web          # Build to bin/web
+
+# MCP server (for AI tool integration)
+cd packages/occam_mcp && nimble install -d
+nimble mcp          # Build to bin/mcp
 ```
 
 ## Library Usage
@@ -457,6 +476,209 @@ Options:
 - Column selection - analyze subsets without modifying original data
 - Format conversion - convert legacy OCCAM .in files to modern JSON
 
+---
+
+## Web Server
+
+OCCAM-Nim includes a REST API server built with [Prologue](https://github.com/planety/prologue) for integration with web frontends.
+
+### Running the Server
+
+```bash
+# Install dependencies and build
+cd packages/occam_web && nimble install -d
+cd ../.. && nimble web
+
+# Run the server
+./bin/web
+# Server starts on http://localhost:8080
+```
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/health` | GET | Health check, returns server status |
+| `/api/data/info` | POST | Get dataset information (variables, sample size) |
+| `/api/model/fit` | POST | Fit a model and return statistics |
+| `/api/search` | POST | Run model search |
+
+### Example Requests
+
+**Health Check:**
+```bash
+curl http://localhost:8080/api/health
+# {"status":"ok","version":"0.1.0"}
+```
+
+**Fit a Model:**
+```bash
+curl -X POST http://localhost:8080/api/model/fit \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data": "{\"name\":\"test\",\"variables\":[{\"name\":\"A\",\"abbrev\":\"A\",\"cardinality\":2},{\"name\":\"B\",\"abbrev\":\"B\",\"cardinality\":2}],\"data\":[[\"0\",\"0\"],[\"0\",\"1\"],[\"1\",\"0\"],[\"1\",\"1\"]],\"counts\":[10,20,30,40]}",
+    "model": "AB"
+  }'
+```
+
+**Search for Models:**
+```bash
+curl -X POST http://localhost:8080/api/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data": "<json-data-string>",
+    "direction": "up",
+    "filter": "loopless",
+    "width": 3,
+    "levels": 7,
+    "sortBy": "bic"
+  }'
+```
+
+### CORS Support
+
+The server includes CORS middleware for React/frontend development. All origins are allowed by default.
+
+---
+
+## MCP Server (AI Integration)
+
+OCCAM-Nim provides a [Model Context Protocol](https://modelcontextprotocol.io/) server for integration with AI tools like Claude.
+
+### Building the MCP Server
+
+```bash
+cd packages/occam_mcp && nimble install -d
+cd ../.. && nimble mcp
+```
+
+### Configuration
+
+Add to your Claude Desktop configuration (`claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "occam": {
+      "command": "/path/to/occam-nim/bin/mcp"
+    }
+  }
+}
+```
+
+### Available Tools
+
+| Tool | Description |
+|------|-------------|
+| `occam_load_data` | Load a dataset from JSON format |
+| `occam_info` | Get information about the loaded dataset |
+| `occam_fit_model` | Fit a model and compute statistics |
+| `occam_search` | Search for optimal models |
+
+### Example MCP Interaction
+
+```json
+// Request: Initialize
+{"jsonrpc":"2.0","method":"initialize","id":1}
+
+// Response
+{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","serverInfo":{"name":"occam-mcp","version":"0.1.0"},"capabilities":{"tools":{}}}}
+
+// Request: List tools
+{"jsonrpc":"2.0","method":"tools/list","id":2}
+
+// Request: Load data
+{"jsonrpc":"2.0","method":"tools/call","id":3,"params":{
+  "name":"occam_load_data",
+  "arguments":{"data":"<json-dataset>"}
+}}
+
+// Request: Fit a model
+{"jsonrpc":"2.0","method":"tools/call","id":4,"params":{
+  "name":"occam_fit_model",
+  "arguments":{"model":"AB:BC"}
+}}
+```
+
+### Tool Input Schemas
+
+**occam_load_data:**
+```json
+{
+  "data": "JSON string containing dataset with name, variables, data, counts"
+}
+```
+
+**occam_fit_model:**
+```json
+{
+  "model": "Model notation using variable abbreviations (e.g., 'AB:BC:AC')"
+}
+```
+
+**occam_search:**
+```json
+{
+  "direction": "up|down (default: up)",
+  "filter": "loopless|full|disjoint (default: loopless)",
+  "width": "integer (default: 3)",
+  "levels": "integer (default: 7)"
+}
+```
+
+---
+
+## Testing
+
+### Run All Unit Tests
+
+```bash
+# Core library tests
+nimble test
+
+# Web handler tests (after building)
+./tests/web/test_handlers
+
+# MCP tests (after building)
+./tests/mcp/test_jsonrpc
+./tests/mcp/test_protocol
+```
+
+### Test Web Server Manually
+
+```bash
+# Start the server
+./bin/web
+
+# In another terminal:
+curl http://localhost:8080/api/health
+# Expected: {"status":"ok","version":"0.1.0"}
+```
+
+### Test MCP Server Manually
+
+```bash
+# Initialize
+echo '{"jsonrpc":"2.0","method":"initialize","id":1}' | ./bin/mcp
+# Expected: {"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05",...}}
+
+# List tools
+echo '{"jsonrpc":"2.0","method":"tools/list","id":2}' | ./bin/mcp
+```
+
+### Quick Smoke Test
+
+```bash
+nimble test && \
+  ./tests/web/test_handlers && \
+  ./tests/mcp/test_jsonrpc && \
+  ./tests/mcp/test_protocol && \
+  echo '{"jsonrpc":"2.0","method":"initialize","id":1}' | ./bin/mcp | grep -q "occam-mcp" && \
+  echo "✓ All tests passed!"
+```
+
+---
+
 ## JSON Input Format
 
 OCCAM-Nim uses a JSON format for data input:
@@ -755,8 +977,18 @@ The test framework will auto-convert CSV to JSON on next run.
 
 ```
 occam-nim/
+├── packages/                   # Sub-packages for optional components
+│   ├── occam_cli/              # CLI package
+│   │   └── occam_cli.nimble
+│   ├── occam_web/              # Web server package
+│   │   └── occam_web.nimble
+│   └── occam_mcp/              # MCP server package
+│       └── occam_mcp.nimble
 ├── src/
+│   ├── occam.nim               # Library entry point
 │   ├── cli.nim                 # CLI entry point
+│   ├── web.nim                 # Web server entry point
+│   ├── mcp.nim                 # MCP server entry point
 │   ├── cli_lib/                # CLI command implementations
 │   │   ├── cmd_search.nim      # Search command (parallel by default)
 │   │   ├── cmd_fit.nim         # Fit command
@@ -764,6 +996,12 @@ occam-nim/
 │   │   ├── cmd_generate.nim    # Data generation commands
 │   │   ├── cmd_preprocess.nim  # Preprocess command (column selection, binning)
 │   │   └── formatting.nim      # Output formatting utilities
+│   ├── web_lib/                # Web server components
+│   │   ├── models.nim          # Request/response types
+│   │   └── logic.nim           # Business logic (testable)
+│   ├── mcp_lib/                # MCP server components
+│   │   ├── jsonrpc.nim         # JSON-RPC 2.0 implementation
+│   │   └── protocol.nim        # MCP protocol handlers
 │   └── occam/
 │       ├── core/
 │       │   ├── types.nim       # Core types (Cardinality, Key, etc.)
@@ -803,6 +1041,11 @@ occam-nim/
 │   ├── test_preprocess.nim     # Column selection & binning tests
 │   ├── test_parallel_search.nim # Parallel search correctness tests
 │   ├── benchmark_*.nim         # Performance benchmarks
+│   ├── web/                    # Web server tests
+│   │   └── test_handlers.nim   # Handler logic tests (8 tests)
+│   ├── mcp/                    # MCP server tests
+│   │   ├── test_jsonrpc.nim    # JSON-RPC 2.0 tests (10 tests)
+│   │   └── test_protocol.nim   # MCP protocol tests (6 tests)
 │   ├── e2e/                    # End-to-end tests
 │   │   ├── uci_helpers.nim     # UCI dataset download/convert utilities
 │   │   ├── test_uci_car.nim    # Car Evaluation tests

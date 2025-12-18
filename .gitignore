@@ -1,7 +1,11 @@
 # Compiled binaries
 /bin/cli
+/bin/web
+/bin/mcp
 /debug_fit
 /src/cli
+/src/web
+/src/mcp
 *.exe
 *.dylib
 *.so
@@ -32,6 +36,14 @@ nimblecache/
 !/tests/e2e/test_*.nim
 /tests/e2e/uci_helpers
 !/tests/e2e/*.nim
+
+# Web server test executables
+/tests/web/test_*
+!/tests/web/test_*.nim
+
+# MCP server test executables
+/tests/mcp/test_*
+!/tests/mcp/test_*.nim
 
 # IDE/Editor
 .vscode/

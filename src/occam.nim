@@ -74,6 +74,7 @@ import occam/search/loopless
 import occam/search/full
 import occam/search/chain
 import occam/search/lattice
+import occam/search/parallel
 
 # Export all public symbols
 export types
@@ -93,3 +94,4 @@ export loopless
 export full
 export chain
 export lattice
+export parallel
