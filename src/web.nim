@@ -13,14 +13,15 @@
 ##   POST /api/model/fit - Fit a model
 ##   POST /api/search    - Run model search
 
-import std/[json, strutils]
+import std/[json, strutils, os, mimetypes]
 import prologue
+import prologue/websocket
 import jsony
 
 when defined(logging):
   import chronicles
 
-import web_lib/[models, logic]
+import web_lib/[models, logic, ws_handler]
 
 # Cast to bypass GC-safe checks for the occam core library
 # This is safe because we're running in a single-threaded async context
@@ -32,6 +33,7 @@ template gcsafeCall(body: untyped) =
 
 proc healthHandler(ctx: Context) {.async, gcsafe.} =
   ## Health check endpoint
+  echo "[API] GET /api/health"
   when defined(logging):
     debug "Health check requested"
 
@@ -152,6 +154,42 @@ proc corsMiddleware(): HandlerAsync =
       await switch(ctx)
 
 
+# Simple SPA middleware - serves static files from a directory
+# with fallback to index.html for client-side routing
+proc spaMiddleware(staticDir: string): HandlerAsync =
+  let mimes = newMimetypes()
+  result = proc(ctx: Context) {.async.} =
+    let path = ctx.request.path
+    
+    # Skip API routes - let them pass through
+    if path.startsWith("/api"):
+      echo "[SPA] API route: ", path
+      await switch(ctx)
+      return
+    
+    # Determine file to serve
+    var filePath: string
+    if path == "/" or path == "":
+      filePath = staticDir / "index.html"
+    else:
+      # Strip leading slash and join with static dir
+      filePath = staticDir / path.strip(chars = {'/'})
+    
+    # If file exists, serve it; otherwise serve index.html (SPA fallback)
+    if not fileExists(filePath):
+      filePath = staticDir / "index.html"
+    
+    if fileExists(filePath):
+      echo "[SPA] Serving: ", filePath
+      let ext = splitFile(filePath).ext
+      let contentType = mimes.getMimetype(ext.strip(chars = {'.'}), default = "application/octet-stream")
+      ctx.response.setHeader("Content-Type", contentType)
+      resp readFile(filePath)
+    else:
+      echo "[SPA] Not found: ", filePath
+      resp "Not found", Http404
+
+
 proc main() =
   when defined(logging):
     info "Starting OCCAM web server", port = 8080
@@ -166,18 +204,28 @@ proc main() =
   # Add CORS middleware
   app.use(corsMiddleware())
 
+  # Serve React SPA from src/static/dist
+  app.use(spaMiddleware("src/static/dist"))
+
   # API routes
   app.addRoute("/api/health", healthHandler, HttpGet)
   app.addRoute("/api/data/info", dataInfoHandler, HttpPost)
   app.addRoute("/api/model/fit", fitModelHandler, HttpPost)
   app.addRoute("/api/search", searchHandler, HttpPost)
 
+  # WebSocket routes
+  app.addRoute("/api/ws/search", wsSearchHandler, HttpGet)
+
   echo "OCCAM Web Server starting on http://localhost:8080"
-  echo "Endpoints:"
-  echo "  GET  /api/health    - Health check"
-  echo "  POST /api/data/info - Get dataset information"
-  echo "  POST /api/model/fit - Fit a model"
-  echo "  POST /api/search    - Run model search"
+  echo ""
+  echo "Frontend: http://localhost:8080/ (src/static/dist)"
+  echo ""
+  echo "API Endpoints:"
+  echo "  GET  /api/health      - Health check"
+  echo "  POST /api/data/info   - Get dataset information"
+  echo "  POST /api/model/fit   - Fit a model"
+  echo "  POST /api/search      - Run model search"
+  echo "  WS   /api/ws/search   - Search with progress (WebSocket)"
 
   app.run()
 

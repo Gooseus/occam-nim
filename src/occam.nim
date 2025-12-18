@@ -61,6 +61,8 @@ import occam/core/errors
 # Mathematical operations
 import occam/math/entropy
 import occam/math/statistics
+import occam/math/chow_liu
+import occam/math/forward_backward
 
 # Manager
 import occam/manager/vb
@@ -87,6 +89,8 @@ export results
 export errors
 export entropy
 export statistics
+export chow_liu
+export forward_backward
 export vb
 export parser
 export base

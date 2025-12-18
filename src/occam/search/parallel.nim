@@ -21,6 +21,7 @@ import ../core/table as coretable
 import ../core/relation
 import ../core/model
 import ../core/errors
+import ../core/progress
 import ../manager/vb
 import loopless
 import full
@@ -337,17 +338,32 @@ proc parallelSearch*(
     stat: SearchStatistic;
     width: int;
     maxLevels: int;
-    useParallel = true
-): seq[SearchCandidate] {.raises: [ValidationError, JunctionTreeError, ConvergenceError, ComputationError, ValueError].} =
+    useParallel = true;
+    progress: ProgressConfig = initProgressConfig()
+): seq[SearchCandidate] {.raises: [ValidationError, JunctionTreeError, ConvergenceError, ComputationError, ValueError, Exception].} =
   ## Perform full parallel search from a starting model
   ## Returns all unique models found, sorted by statistic
+  ##
+  ## Parameters:
+  ##   progress - Optional progress reporting config. When enabled,
+  ##              emits events at search start, after each level, and on completion.
+
+  # Determine statistic name for progress reporting
+  let statName = case stat
+    of SearchDDF: "DDF"
+    of SearchAIC: "AIC"
+    of SearchBIC: "BIC"
+
+  # Emit search started event
+  progress.emit(makeSearchStartEvent(maxLevels, statName))
 
   var currentLevel = @[startModel]
   var allCandidates: seq[SearchCandidate]
   var seen = initTable[string, bool]()
+  var totalModelsEvaluated = 0
 
   # Add starting model
-  var mgr = newVBManager(varList, inputTable)
+  var mgr = initVBManager(varList, inputTable)
   let startName = startModel.printName(varList)
   let startStat = mgr.computeStatistic(startModel, stat)
   allCandidates.add(SearchCandidate(
@@ -356,15 +372,18 @@ proc parallelSearch*(
     statistic: startStat
   ))
   seen[startName] = true
+  totalModelsEvaluated += 1
 
   for level in 1..maxLevels:
     if currentLevel.len == 0:
       break
 
-    let (nextModels, _) = if useParallel:
+    let (nextModels, levelEvaluated) = if useParallel:
       searchLevelParallel(varList, inputTable, currentLevel, filter, stat, width)
     else:
       searchLevelSequential(varList, inputTable, currentLevel, filter, stat, width)
+
+    totalModelsEvaluated += levelEvaluated
 
     # Add new unique models to allCandidates
     for model in nextModels:
@@ -380,7 +399,19 @@ proc parallelSearch*(
 
     currentLevel = nextModels
 
+    # Emit level progress event
+    sortCandidates(allCandidates, stat)
+    let bestName = if allCandidates.len > 0: allCandidates[0].name else: ""
+    let bestStat = if allCandidates.len > 0: allCandidates[0].statistic else: 0.0
+    progress.emit(makeLevelEvent(level, maxLevels, totalModelsEvaluated, bestName, bestStat, statName))
+
   sortCandidates(allCandidates, stat)
+
+  # Emit search complete event
+  let finalBestName = if allCandidates.len > 0: allCandidates[0].name else: ""
+  let finalBestStat = if allCandidates.len > 0: allCandidates[0].statistic else: 0.0
+  progress.emit(makeCompleteEvent(totalModelsEvaluated, finalBestName, finalBestStat, statName))
+
   allCandidates
 
 
@@ -388,3 +419,4 @@ proc parallelSearch*(
 export SearchStatistic, SearchFilter, NeighborGenerator, SearchCandidate, LevelResult
 export processOneSeed, processOneSeedWithFilter, mergeCandidates, sortCandidates, selectBest
 export searchLevelSequential, searchLevelSequentialLegacy, searchLevelParallel, parallelSearch
+export progress

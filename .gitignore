@@ -60,3 +60,7 @@ scratch/
 # Large benchmark data files (generated/downloadable)
 /data/*
 !/data/.gitkeep
+
+# node_modules
+/src/static/node_modules/
+/src/static/dist/

@@ -7,7 +7,9 @@ import std/[json, strformat, strutils]
 import jsony
 
 import ../occam
+import ../occam/core/progress
 import ./jsonrpc
+import ./progress as mcpprogress
 
 const
   PROTOCOL_VERSION = "2024-11-05"
@@ -202,8 +204,11 @@ proc toolFitModel(args: JsonNode): JsonRpcResponse =
     errorResponse(newJNull(), -32000, fmt"Failed to fit model: {e.msg}")
 
 
-proc toolSearch(args: JsonNode): JsonRpcResponse =
-  ## Run model search
+proc toolSearch(args: JsonNode; progressToken: JsonNode): JsonRpcResponse =
+  ## Run model search with optional progress notifications.
+  ##
+  ## If progressToken is provided, sends progress notifications as the search
+  ## proceeds through levels.
   if not dataLoaded:
     return errorResponse(newJNull(), -32000, "No data loaded. Use occam_load_data first.")
 
@@ -228,10 +233,18 @@ proc toolSearch(args: JsonNode): JsonRpcResponse =
     else:
       mgr.bottomRefModel
 
-    # Run search
+    # Create progress config with MCP callback if token provided
+    var progressCtx = MCPProgressContext(progressToken: progressToken, lastProgress: 0)
+    let progressConfig = if progressToken.kind != JNull:
+      initProgressConfig(callback = makeMCPProgressCallback(progressCtx))
+    else:
+      initProgressConfig()
+
+    # Run search with progress
     let candidates = parallelSearch(
       currentVarList, currentTable, startModel,
-      filter, SearchBIC, width, levels
+      filter, SearchBIC, width, levels,
+      progress = progressConfig
     )
 
     var info = fmt"Search Results ({candidates.len} models evaluated):" & "\n"
@@ -259,6 +272,12 @@ proc handleToolsCall*(id: JsonNode; params: JsonNode): JsonRpcResponse =
   let toolName = params["name"].getStr()
   let args = params.getOrDefault("arguments")
 
+  # Extract progressToken from _meta if present (per MCP spec)
+  let progressToken = if params.hasKey("_meta") and params["_meta"].hasKey("progressToken"):
+    params["_meta"]["progressToken"]
+  else:
+    newJNull()
+
   case toolName
   of "occam_load_data":
     toolLoadData(args)
@@ -267,7 +286,7 @@ proc handleToolsCall*(id: JsonNode; params: JsonNode): JsonRpcResponse =
   of "occam_fit_model":
     toolFitModel(args)
   of "occam_search":
-    toolSearch(args)
+    toolSearch(args, progressToken)
   else:
     errorResponse(id, -32000, fmt"Unknown tool: {toolName}")
 

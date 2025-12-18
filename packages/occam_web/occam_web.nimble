@@ -15,6 +15,7 @@ binDir        = "../../bin"
 # Dependencies
 requires "nim >= 2.0.0"
 requires "prologue >= 0.6.6"
+requires "websocketx >= 0.1.2"
 requires "chronicles >= 0.10.0"
 requires "distributions >= 0.1.0"
 requires "jsony >= 1.1.0"

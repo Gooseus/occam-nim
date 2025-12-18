@@ -4,6 +4,7 @@
 ## They are separated from HTTP handling for testability.
 
 import ../occam
+import ../occam/core/progress
 import ./models
 
 const VERSION = "0.1.0"
@@ -88,6 +89,56 @@ proc processSearch*(req: SearchRequest): SearchResponse =
     varList, table, startModel,
     filter, stat,
     req.width, req.levels
+  )
+
+  result.totalEvaluated = candidates.len
+
+  for candidate in candidates:
+    let item = SearchResultItem(
+      model: candidate.model.printName(varList),
+      h: mgr.computeH(candidate.model),
+      aic: mgr.computeAIC(candidate.model),
+      bic: mgr.computeBIC(candidate.model),
+      hasLoops: candidate.model.hasLoops(varList)
+    )
+    result.results.add(item)
+
+
+proc processSearchWithProgress*(req: SearchRequest; progressConfig: ProgressConfig): SearchResponse =
+  ## Run model search with progress reporting
+  ##
+  ## This variant accepts a ProgressConfig for streaming progress events
+  ## during long-running searches (used by WebSocket handler).
+  let spec = parseDataSpec(req.data)
+  let varList = spec.toVariableList()
+  let table = spec.toTable(varList)
+
+  var mgr = initVBManager(varList, table)
+
+  # Determine search filter
+  let filter = case req.filter
+    of "full": SearchFull
+    of "disjoint": SearchDisjoint
+    else: SearchLoopless
+
+  # Determine sort statistic
+  let stat = case req.sortBy
+    of "aic": SearchAIC
+    of "ddf": SearchDDF
+    else: SearchBIC
+
+  # Get starting model based on direction
+  let startModel = if req.direction == "down":
+    mgr.topRefModel
+  else:
+    mgr.bottomRefModel
+
+  # Run parallel search with progress
+  let candidates = parallelSearch(
+    varList, table, startModel,
+    filter, stat,
+    req.width, req.levels,
+    progress = progressConfig
   )
 
   result.totalEvaluated = candidates.len

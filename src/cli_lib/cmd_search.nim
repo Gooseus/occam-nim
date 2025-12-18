@@ -8,11 +8,13 @@ import ../occam/core/types
 import ../occam/core/variable
 import ../occam/core/table as coretable
 import ../occam/core/model
+import ../occam/core/progress
 import ../occam/io/parser
 import ../occam/manager/vb
 import ../occam/search/parallel
 import ../occam/search/chain
 import formatting
+import progress as cliprogress
 
 
 proc search*(input: string;
@@ -22,7 +24,8 @@ proc search*(input: string;
              levels = 7;
              sort = "ddf";
              parallel = true;
-             verbose = false): int =
+             verbose = false;
+             showProgress = true): int =
   ## Search model space for best-fitting models
   ##
   ## Arguments:
@@ -34,6 +37,7 @@ proc search*(input: string;
   ##   sort: Statistic to sort by (ddf, aic, bic)
   ##   parallel: Use parallel search (default: true, uses all CPU cores)
   ##   verbose: Show detailed output
+  ##   showProgress: Show progress during search (default: true)
 
   if input == "":
     echo "Error: Input file required"
@@ -148,12 +152,19 @@ proc search*(input: string;
   echo "Search Results:"
   printSeparator(80)
 
+  # Create progress config
+  let progressConfig = if showProgress:
+    initProgressConfig(callback = makeCLIProgressCallback(verbose))
+  else:
+    initProgressConfig()
+
   # Use parallel search (parallelization enabled by default)
   let results = parallelSearch(
     varList, inputTable, startModel,
     searchFilter, searchStat,
     width, levels,
-    useParallel = parallel
+    useParallel = parallel,
+    progress = progressConfig
   )
 
   echo ""
