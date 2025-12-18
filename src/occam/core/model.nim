@@ -219,3 +219,14 @@ func hasLoops*(m: Model; varList: VariableList): bool =
   ## Reference: Beeri et al. (1983), Tarjan & Yannakakis (1984), Krippendorff (1986)
   hasLoopsViaGraph(m.relations)
 
+
+func isDecomposable*(m: Model; varList: VariableList): bool =
+  ## Check if the model is decomposable (has no loops)
+  ##
+  ## A decomposable model can be represented as a junction tree and
+  ## fitted exactly using belief propagation. Non-decomposable models
+  ## require iterative algorithms like IPF.
+  ##
+  ## This is the inverse of `hasLoops`.
+  not hasLoopsViaGraph(m.relations)
+

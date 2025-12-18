@@ -1,11 +1,52 @@
 ## OCCAM - Reconstructability Analysis Toolkit
-## Main library export module
 ##
-## Usage:
-##   import occam
-##   # or selectively:
-##   import occam/core/[types, variable, table]
-##   import occam/manager/vb
+## A Nim library for Reconstructability Analysis (RA), a methodology for
+## discrete multivariate modeling based on information theory and graph theory.
+##
+## ## Quick Start
+##
+## ```nim
+## import occam
+##
+## # Load data from JSON file
+## let data = loadDataSpec("mydata.json")
+## let varList = data.toVariableList()
+## let table = data.toTable(varList)
+##
+## # Create a manager and fit a model
+## var mgr = initVBManager(varList, table)
+## let model = mgr.makeModel("AB:BC:C")  # A model with three relations
+## let result = mgr.fitModel(model)
+##
+## echo "Entropy: ", result.h
+## echo "AIC: ", result.aic
+## echo "BIC: ", result.bic
+## ```
+##
+## ## Module Organization
+##
+## - `occam/core/*` - Core types: Variable, Table, Relation, Model
+## - `occam/math/*` - Entropy, statistics, IPF, belief propagation
+## - `occam/manager/*` - VBManager coordinates fitting and analysis
+## - `occam/search/*` - Model search algorithms
+## - `occam/io/*` - Data loading and format conversion
+##
+## ## Selective Imports
+##
+## For finer control, import specific modules:
+## ```nim
+## import occam/core/[types, variable, table]
+## import occam/manager/vb
+## import occam/math/[entropy, statistics]
+## ```
+##
+## ## Advanced Usage
+##
+## For direct access to graph algorithms, IPF, or belief propagation:
+## ```nim
+## import occam/core/[graph, junction_tree]
+## import occam/math/[ipf, belief_propagation]
+## ```
 
 # Core types and data structures
 import occam/core/types
@@ -15,6 +56,7 @@ import occam/core/table
 import occam/core/relation
 import occam/core/model
 import occam/core/results
+import occam/core/errors
 
 # Mathematical operations
 import occam/math/entropy
@@ -41,6 +83,7 @@ export table
 export relation
 export model
 export results
+export errors
 export entropy
 export statistics
 export vb

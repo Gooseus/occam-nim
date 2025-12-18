@@ -1,42 +1,138 @@
 # OCCAM-Nim
 
-A Nim implementation of OCCAM (Organizational Complexity Computation and Modeling) - a Reconstructability Analysis (RA) toolkit for discrete multivariate modeling.
+A Nim library for Reconstructability Analysis (RA) - a methodology for discrete multivariate modeling based on information theory and graph theory.
 
 ## Overview
 
-OCCAM-Nim provides tools for:
-- **Model search**: Find optimal models using loopless, full (with loops), disjoint, or chain search strategies
-- **Statistical analysis**: Compute entropy, transmission, degrees of freedom, likelihood ratio, AIC, BIC, alpha
-- **Directed systems**: Conditional entropy, confusion matrix, percent correct, model comparison
-- **Loop models**: Full support via Iterative Proportional Fitting (IPF)
-- **Binning/discretization**: Transform continuous or high-cardinality variables into discrete categories
-- **Synthetic data**: Generate test data with known structure
-- **Data conversion**: Import from OCCAM `.in` format, CSV files, or JSON
-
-This is a modern reimplementation focusing on Variable-Based (VB) analysis (~97% feature complete vs original OCCAM).
+OCCAM-Nim provides:
+- **Model fitting**: Compute entropy, transmission, degrees of freedom, likelihood ratio, AIC, BIC
+- **Model search**: Find optimal models using loopless, full, disjoint, or chain search strategies
+- **Decomposable models**: Exact inference via junction tree and belief propagation
+- **Loop models**: Iterative Proportional Fitting (IPF) for non-decomposable models
+- **Directed systems**: Conditional entropy, confusion matrix, prediction accuracy
+- **Data preprocessing**: Binning, discretization, format conversion
 
 ## Installation
 
-### Prerequisites
-- Nim 2.0+ (install via [choosenim](https://github.com/dom96/choosenim))
-- nimble (comes with Nim)
+### As a Library
 
-### Build
 ```bash
-git clone <repo>
+nimble install occam
+```
+
+### From Source
+
+```bash
+git clone https://github.com/yourrepo/occam-nim
 cd occam-nim
-nimble install -d  # Install dependencies
-nimble build       # Build CLI
+nimble install -d   # Install dependencies
+nimble build        # Build CLI (optional)
+nimble test         # Run tests
 ```
 
-### Run Tests
+## Library Usage
+
+### Quick Start
+
+```nim
+import occam
+
+# Load data from JSON file
+let data = loadDataSpec("mydata.json")
+let varList = data.toVariableList()
+let table = data.toTable(varList)
+
+# Create a manager and fit a model
+var mgr = initVBManager(varList, table)
+let model = mgr.parseModel("AB:BC:C")  # A model with three relations
+let result = mgr.fitModel(model)
+
+echo "Entropy: ", result.h
+echo "AIC: ", result.aic
+echo "BIC: ", result.bic
+echo "Has loops: ", model.isDecomposable(varList)
+```
+
+### Model Search
+
+```nim
+import occam
+
+let data = loadDataSpec("data.json")
+let varList = data.toVariableList()
+let table = data.toTable(varList)
+
+var mgr = initVBManager(varList, table)
+
+# Search for best models using BIC
+let results = parallelSearch(
+  varList, table,
+  mgr.bottomRefModel,  # Start from independence model
+  SearchFilter.Loopless,
+  SearchStatistic.BIC,
+  Direction.Ascending,
+  width = 5,
+  maxLevels = 7
+)
+
+for candidate in results:
+  echo candidate.model.printName(varList), " BIC=", mgr.computeBIC(candidate.model)
+```
+
+### Building Data Programmatically
+
+```nim
+import occam
+
+# Create variables
+var varList = initVariableList()
+discard varList.add(initVariable("Gender", "G", Cardinality(2)))
+discard varList.add(initVariable("Age", "A", Cardinality(3)))
+discard varList.add(initVariable("Outcome", "O", Cardinality(2), isDependent = true))
+
+# Build contingency table
+var table = initTable(varList.keySize)
+table.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0), (VariableIndex(2), 0)]), 45.0)
+table.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0), (VariableIndex(2), 1)]), 32.0)
+# ... add more observations
+table.sort()
+table.normalize()
+
+# Analyze
+var mgr = initVBManager(varList, table)
+let model = mgr.parseModel("GA:AO")
+let fit = mgr.fitModel(model)
+```
+
+### Module Organization
+
+- `occam/core/*` - Core types: Variable, Table, Relation, Model
+- `occam/math/*` - Entropy, statistics, IPF, belief propagation
+- `occam/manager/*` - VBManager coordinates fitting and analysis
+- `occam/search/*` - Model search algorithms
+- `occam/io/*` - Data loading and format conversion
+
+For advanced access to graph algorithms or inference:
+```nim
+import occam/core/[graph, junction_tree]
+import occam/math/[ipf, belief_propagation]
+```
+
+---
+
+## CLI Usage
+
+OCCAM-Nim also provides a command-line interface for interactive analysis.
+
+### Build CLI
+
 ```bash
-nimble test
+nimble build
 ```
 
-## Quick Start
+### Quick Start
 
-### 1. Analyze a CSV file
+#### 1. Analyze a CSV file
 ```bash
 ./bin/cli analyze-csv -i data.csv
 ```

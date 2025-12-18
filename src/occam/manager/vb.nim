@@ -98,6 +98,12 @@ proc initVBManager*(varList: VariableList; inputData: coretable.ContingencyTable
   result.topRef = createTopRefModel(varList)
   result.bottomRef = createBottomRefModel(varList)
 
+# Alias with simpler name
+proc initManager*(varList: VariableList; inputData: coretable.ContingencyTable;
+                  validate = true): VBManager {.raises: [ValidationError].} =
+  ## Alias for `initVBManager` with a simpler name.
+  initVBManager(varList, inputData, validate)
+
 # Deprecated alias
 proc newVBManager*(varList: VariableList; inputData: coretable.ContingencyTable;
                    validate = true): VBManager {.deprecated: "Use initVBManager instead", raises: [ValidationError].} =
@@ -151,9 +157,15 @@ proc makeProjection*(mgr: var VBManager; rel: var Relation) =
 # ============ Model Management ============
 
 proc makeModel*(mgr: var VBManager; name: string): Model =
-  ## Create a model from a string like "AB:BC" or "A:B:C"
-  ## Supports both short notation (AB:BC) and long notation (A:B:C:AB:BC)
-  ## Long notation is simplified by removing subsumed relations
+  ## Create a model from a colon-separated string like "AB:BC" or "A:B:C"
+  ##
+  ## Each part represents a relation using variable abbreviations.
+  ## Supports both short notation (AB:BC) and long notation (A:B:C:AB:BC).
+  ## Long notation is simplified by removing subsumed relations.
+  ##
+  ## Example:
+  ##   let model = mgr.makeModel("AB:BC:C")  # Three relations
+  ##   let indep = mgr.makeModel("A:B:C")    # Independence model
   let existing = mgr.modelCache.get(name)
   if existing.isSome:
     return existing.get
@@ -194,6 +206,12 @@ proc makeModel*(mgr: var VBManager; name: string): Model =
 
   var model = initModel(maximalRelations)
   mgr.modelCache.put(model, mgr.varList)
+
+
+proc parseModel*(mgr: var VBManager; name: string): Model =
+  ## Alias for `makeModel` - parse a model from string notation.
+  ## Preferred name for new code as it better describes the operation.
+  mgr.makeModel(name)
 
 
 # ============ Statistics Computation ============
