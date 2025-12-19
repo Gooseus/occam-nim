@@ -3,7 +3,7 @@
 ## Tests the level-based parallel search implementation.
 ## Verifies correctness and compares sequential vs parallel results.
 
-import std/[unittest, times, strformat, sets, algorithm]
+import std/[unittest, times, monotimes, strformat, sets, algorithm]
 import ../src/occam/core/types
 import ../src/occam/core/variable
 import ../src/occam/core/key
@@ -291,23 +291,23 @@ suite "Parallel Search - Performance":
       varList, inputTable, @[startModel], SearchLoopless, SearchAIC, 3
     )
 
-    # Time sequential
-    let seqStart = cpuTime()
+    # Time sequential (wall clock)
+    let seqStart = getMonoTime()
     for _ in 1..3:
       discard parallelSearch(
         varList, inputTable, startModel, SearchLoopless,
         SearchAIC, width = 5, maxLevels = 4, useParallel = false
       )
-    let seqTime = (cpuTime() - seqStart) * 1000.0 / 3.0
+    let seqTime = float64(inNanoseconds(getMonoTime() - seqStart)) / 1_000_000.0 / 3.0
 
-    # Time parallel
-    let parStart = cpuTime()
+    # Time parallel (wall clock)
+    let parStart = getMonoTime()
     for _ in 1..3:
       discard parallelSearch(
         varList, inputTable, startModel, SearchLoopless,
         SearchAIC, width = 5, maxLevels = 4, useParallel = true
       )
-    let parTime = (cpuTime() - parStart) * 1000.0 / 3.0
+    let parTime = float64(inNanoseconds(getMonoTime() - parStart)) / 1_000_000.0 / 3.0
 
     echo ""
     echo &"  Sequential: {seqTime:.1f}ms"

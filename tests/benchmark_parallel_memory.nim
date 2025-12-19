@@ -5,7 +5,7 @@
 ##
 ## Run: nim c -r -d:release --threads:on tests/benchmark_parallel_memory.nim
 
-import std/[times, strformat, strutils, cpuinfo, json, os, locks]
+import std/[times, monotimes, strformat, strutils, cpuinfo, json, os, locks]
 import std/tables as stdtables
 import std/threadpool
 import ../src/occam/core/types
@@ -103,9 +103,9 @@ proc main() =
   echo "Seeds to process: ", items.len
   echo ""
 
-  # Test 1: Sequential (baseline)
+  # Test 1: Sequential (baseline) - wall clock
   echo "Test 1: Sequential"
-  let seqStart = cpuTime()
+  let seqStart = getMonoTime()
   var seqTotal = 0
   for item in items:
     var localMgr = newVBManager(gVarList, gInputTable)
@@ -114,13 +114,13 @@ proc main() =
     seqTotal += neighbors.len
     for n in neighbors:
       discard localMgr.computeAIC(n)
-  let seqMs = (cpuTime() - seqStart) * 1000.0
+  let seqMs = float64(inNanoseconds(getMonoTime() - seqStart)) / 1_000_000.0
   echo &"  Time: {seqMs:.1f}ms  Models evaluated: {seqTotal}"
 
-  # Test 2: Parallel with threadpool
+  # Test 2: Parallel with threadpool - wall clock
   echo ""
   echo "Test 2: Parallel (threadpool)"
-  let parStart = cpuTime()
+  let parStart = getMonoTime()
   var futures: seq[FlowVar[WorkResult]]
   for item in items:
     futures.add(spawn processWithNewManager(item))
@@ -128,17 +128,17 @@ proc main() =
   var parTotal = 0
   for f in futures:
     parTotal += (^f).evaluated
-  let parMs = (cpuTime() - parStart) * 1000.0
+  let parMs = float64(inNanoseconds(getMonoTime() - parStart)) / 1_000_000.0
   echo &"  Time: {parMs:.1f}ms  Models evaluated: {parTotal}"
 
-  # Test 3: Time just the VBManager creation
+  # Test 3: Time just the VBManager creation - wall clock
   echo ""
   echo "Test 3: VBManager creation timing"
-  let createStart = cpuTime()
+  let createStart = getMonoTime()
   for _ in 0..<items.len:
     var testMgr = newVBManager(gVarList, gInputTable)
     discard testMgr.bottomRefModel
-  let createMs = (cpuTime() - createStart) * 1000.0
+  let createMs = float64(inNanoseconds(getMonoTime() - createStart)) / 1_000_000.0
   echo &"  Sequential creation ({items.len}x): {createMs:.1f}ms"
   echo &"  Per-manager: {createMs / float64(items.len):.2f}ms"
 

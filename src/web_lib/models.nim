@@ -71,6 +71,33 @@ type
     error*: string
     message*: string
 
+  # Search estimation
+  SearchEstimateRequest* = object
+    data*: string
+    direction*: string
+    filter*: string
+    width*: int
+    levels*: int
+    sortBy*: string  # "bic", "aic", "ddf" - affects loop probability!
+
+  LevelEstimate* = object
+    level*: int
+    estimatedModels*: int           # Models to evaluate at this level
+    loopProbability*: float64       # Probability models have loops (0-1)
+    estimatedMs*: float64           # Estimated time for this level (ms)
+
+  SearchEstimateResponse* = object
+    estimatedSeconds*: float64      # Estimated time in seconds
+    estimatedSecondsLow*: float64   # Lower bound estimate
+    estimatedSecondsHigh*: float64  # Upper bound estimate
+    level1Neighbors*: int           # Expected neighbors at level 1
+    totalModelsEstimate*: int       # Rough estimate of total models to evaluate
+    stateSpace*: float64            # Total state space (product of cardinalities)
+    complexity*: string             # "fast", "moderate", "slow", "very_slow", "infeasible"
+    warnings*: seq[string]          # Warnings about the search
+    recommendations*: seq[string]   # Suggestions for faster search
+    levelBreakdown*: seq[LevelEstimate]  # Per-level estimates
+
 # Default values for SearchRequest
 proc initSearchRequest*(): SearchRequest =
   result.direction = "up"

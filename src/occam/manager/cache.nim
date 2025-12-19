@@ -12,13 +12,43 @@ import ../core/relation
 import ../core/model
 
 type
+  CacheStats* = object
+    ## Statistics for cache performance tracking
+    hits*: int       ## Number of cache hits
+    misses*: int     ## Number of cache misses
+    entries*: int    ## Current number of entries
+
   RelationCache* = object
     ## Cache for relation objects indexed by their variable set
     cache: Table[string, Relation]
+    stats*: CacheStats
 
   ModelCache* = object
     ## Cache for model objects indexed by their canonical name
     cache: Table[string, Model]
+    stats*: CacheStats
+
+
+# ============ CacheStats Utilities ============
+
+proc initCacheStats*(): CacheStats =
+  ## Initialize empty cache statistics
+  CacheStats(hits: 0, misses: 0, entries: 0)
+
+
+proc hitRate*(stats: CacheStats): float64 =
+  ## Calculate hit rate as a percentage (0.0 to 1.0)
+  let total = stats.hits + stats.misses
+  if total == 0:
+    0.0
+  else:
+    float64(stats.hits) / float64(total)
+
+
+proc reset*(stats: var CacheStats) =
+  ## Reset statistics counters (but not entries count)
+  stats.hits = 0
+  stats.misses = 0
 
 
 # ============ Relation Cache ============
@@ -26,6 +56,7 @@ type
 proc initRelationCache*(): RelationCache =
   ## Initialize an empty relation cache
   result.cache = initTable[string, Relation]()
+  result.stats = initCacheStats()
 
 
 proc cacheKey*(varIndices: seq[VariableIndex]): string =
@@ -38,29 +69,35 @@ proc cacheKey*(varIndices: seq[VariableIndex]): string =
     result.add($idx.toInt)
 
 
-proc get*(rc: RelationCache; varIndices: seq[VariableIndex]): Option[Relation] =
+proc get*(rc: var RelationCache; varIndices: seq[VariableIndex]): Option[Relation] =
   ## Get relation from cache, returns Some(relation) if found, none otherwise
+  ## Updates cache statistics (hits/misses)
   let key = cacheKey(varIndices)
   if key in rc.cache:
+    rc.stats.hits += 1
     try:
       some(rc.cache[key])
     except KeyError:
       none(Relation)
   else:
+    rc.stats.misses += 1
     none(Relation)
 
 
 proc put*(rc: var RelationCache; rel: Relation): Relation =
   ## Put relation in cache, return (possibly existing) cached version
+  ## Updates entries count when adding new entries
   let key = cacheKey(rel.varIndices)
   if key in rc.cache:
     try:
       rc.cache[key]
     except KeyError:
       rc.cache[key] = rel
+      rc.stats.entries += 1
       rel
   else:
     rc.cache[key] = rel
+    rc.stats.entries += 1
     rel
 
 
@@ -75,8 +112,16 @@ proc len*(rc: RelationCache): int =
 
 
 proc clear*(rc: var RelationCache) =
-  ## Clear all cached relations
+  ## Clear all cached relations and reset statistics
   rc.cache.clear()
+  rc.stats = initCacheStats()
+
+
+proc resetStats*(rc: var RelationCache) =
+  ## Reset statistics counters without clearing cache
+  rc.stats.hits = 0
+  rc.stats.misses = 0
+  rc.stats.entries = rc.cache.len
 
 
 # ============ Model Cache ============
@@ -84,30 +129,37 @@ proc clear*(rc: var RelationCache) =
 proc initModelCache*(): ModelCache =
   ## Initialize an empty model cache
   result.cache = initTable[string, Model]()
+  result.stats = initCacheStats()
 
 
-proc get*(mc: ModelCache; name: string): Option[Model] =
+proc get*(mc: var ModelCache; name: string): Option[Model] =
   ## Get model from cache by name, returns Some(model) if found, none otherwise
+  ## Updates cache statistics (hits/misses)
   if name in mc.cache:
+    mc.stats.hits += 1
     try:
       some(mc.cache[name])
     except KeyError:
       none(Model)
   else:
+    mc.stats.misses += 1
     none(Model)
 
 
 proc put*(mc: var ModelCache; model: Model; varList: VariableList): Model =
   ## Put model in cache, return (possibly existing) cached version
+  ## Updates entries count when adding new entries
   let name = model.printName(varList)
   if name in mc.cache:
     try:
       mc.cache[name]
     except KeyError:
       mc.cache[name] = model
+      mc.stats.entries += 1
       model
   else:
     mc.cache[name] = model
+    mc.stats.entries += 1
     model
 
 
@@ -122,10 +174,19 @@ proc len*(mc: ModelCache): int =
 
 
 proc clear*(mc: var ModelCache) =
-  ## Clear all cached models
+  ## Clear all cached models and reset statistics
   mc.cache.clear()
+  mc.stats = initCacheStats()
+
+
+proc resetStats*(mc: var ModelCache) =
+  ## Reset statistics counters without clearing cache
+  mc.stats.hits = 0
+  mc.stats.misses = 0
+  mc.stats.entries = mc.cache.len
 
 
 # Export types and basic functions
-export RelationCache, ModelCache
-export initRelationCache, initModelCache
+export CacheStats, RelationCache, ModelCache
+export initCacheStats, hitRate, reset
+export initRelationCache, initModelCache, resetStats

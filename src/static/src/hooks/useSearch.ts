@@ -14,9 +14,15 @@ export interface Progress {
   currentLevel: number
   totalLevels: number
   modelsEvaluated: number
+  looplessModels?: number  // Models without loops (fast BP)
+  loopModels?: number      // Models with loops (slow IPF)
   bestModelName: string
   bestStatistic: number
   statisticName: string
+  // Timing info
+  levelTimeMs?: number     // Time for this level in ms
+  elapsedMs?: number       // Total elapsed time in ms
+  avgModelTimeMs?: number  // Average time per model in ms
 }
 
 export interface ResultItem {
@@ -97,9 +103,14 @@ export function useSearch() {
                 currentLevel: msg.data.currentLevel,
                 totalLevels: msg.data.totalLevels,
                 modelsEvaluated: msg.data.modelsEvaluated,
+                looplessModels: msg.data.looplessModels,
+                loopModels: msg.data.loopModels,
                 bestModelName: msg.data.bestModelName,
                 bestStatistic: msg.data.bestStatistic,
-                statisticName: msg.data.statisticName
+                statisticName: msg.data.statisticName,
+                levelTimeMs: msg.data.levelTimeMs,
+                elapsedMs: msg.data.elapsedMs,
+                avgModelTimeMs: msg.data.avgModelTimeMs
               })
             } else if (msg.event === 'search_complete') {
               setProgress(prev => prev ? {
@@ -107,7 +118,9 @@ export function useSearch() {
                 currentLevel: prev.totalLevels,
                 modelsEvaluated: msg.data.totalModelsEvaluated,
                 bestModelName: msg.data.bestModelName,
-                bestStatistic: msg.data.bestStatistic
+                bestStatistic: msg.data.bestStatistic,
+                elapsedMs: msg.data.elapsedMs,
+                avgModelTimeMs: msg.data.avgModelTimeMs
               } : null)
             }
             break

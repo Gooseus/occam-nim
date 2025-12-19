@@ -5,7 +5,7 @@
 
 {.push raises: [].}
 
-import std/options
+import std/[options, monotimes, times]
 import ../core/types
 import ../core/variable
 import ../core/key
@@ -68,6 +68,13 @@ proc fitIndependenceModel*(data: coretable.ContingencyTable; varList: VariableLi
 # ============ General Model Fitting ============
 
 type
+  FitType* = enum
+    ## Type of fitting algorithm used
+    ftSaturated       ## Saturated model - no fitting needed
+    ftIndependence    ## Independence model - product of marginals
+    ftLoopless        ## Loopless model - belief propagation
+    ftIPF             ## Loop model - IPF
+
   FitInfo* = object
     ## Information about the fitting process
     fitTable*: coretable.ContingencyTable
@@ -75,16 +82,34 @@ type
     error*: float64
     usedIPF*: bool
     jtFailed*: bool  # True if junction tree construction failed
+    # Timing information
+    fitType*: FitType             ## Type of fit performed
+    fitTimeNs*: int64             ## Total fit time in nanoseconds
+    # BP timing (when fitType == ftLoopless)
+    bpCollectNs*: int64           ## BP collect phase time
+    bpDistributeNs*: int64        ## BP distribute phase time
+    # IPF timing (when fitType == ftIPF, uses recordIterationTimes)
+    ipfTotalNs*: int64            ## Total IPF time
+    ipfIterTimesNs*: seq[int64]   ## Per-iteration IPF times
 
   FitConfig* = object
     ## Configuration for model fitting
     raiseOnJTFailure*: bool       # Raise JunctionTreeError if JT build fails (default: false)
     raiseOnNonConvergence*: bool  # Raise ConvergenceError if IPF doesn't converge (default: false)
+    recordTiming*: bool           # Record timing information (default: true)
+    ipfProgressCallback*: ipf.IPFProgressCallback  # Optional IPF progress callback
+    ipfProgressInterval*: int     # IPF progress reporting interval (default: 100)
 
 
-proc initFitConfig*(raiseOnJTFailure = false; raiseOnNonConvergence = false): FitConfig =
+proc initFitConfig*(raiseOnJTFailure = false; raiseOnNonConvergence = false;
+                    recordTiming = true;
+                    ipfProgressCallback: ipf.IPFProgressCallback = nil;
+                    ipfProgressInterval = 100): FitConfig =
   result.raiseOnJTFailure = raiseOnJTFailure
   result.raiseOnNonConvergence = raiseOnNonConvergence
+  result.recordTiming = recordTiming
+  result.ipfProgressCallback = ipfProgressCallback
+  result.ipfProgressInterval = ipfProgressInterval
 
 
 proc fitModelTable*(data: coretable.ContingencyTable; model: Model; varList: VariableList;
@@ -98,6 +123,9 @@ proc fitModelTable*(data: coretable.ContingencyTable; model: Model; varList: Var
   ##
   ## If config.raiseOnJTFailure is true, raises JunctionTreeError on JT failure
   ## If config.raiseOnNonConvergence is true, raises ConvergenceError on IPF non-convergence
+  ## If config.recordTiming is true, captures timing information in FitInfo
+
+  let startTime = getMonoTime()
 
   # For saturated model, return input data
   if model.isSaturatedModel(varList):
@@ -106,6 +134,9 @@ proc fitModelTable*(data: coretable.ContingencyTable; model: Model; varList: Var
     result.error = 0.0
     result.usedIPF = false
     result.jtFailed = false
+    result.fitType = ftSaturated
+    if config.recordTiming:
+      result.fitTimeNs = inNanoseconds(getMonoTime() - startTime)
     return
 
   # For independence model, compute product of marginals
@@ -115,18 +146,31 @@ proc fitModelTable*(data: coretable.ContingencyTable; model: Model; varList: Var
     result.error = 0.0
     result.usedIPF = false
     result.jtFailed = false
+    result.fitType = ftIndependence
+    if config.recordTiming:
+      result.fitTimeNs = inNanoseconds(getMonoTime() - startTime)
     return
 
   # Check if model has loops
   if hasLoops(model, varList):
     # Use IPF for loop models (non-decomposable)
-    let ipfConfig = ipf.initIPFConfig(raiseOnNonConvergence = config.raiseOnNonConvergence)
+    let ipfConfig = ipf.initIPFConfig(
+      raiseOnNonConvergence = config.raiseOnNonConvergence,
+      recordIterationTimes = config.recordTiming,
+      progressCallback = config.ipfProgressCallback,
+      progressInterval = config.ipfProgressInterval
+    )
     let ipfResult = ipf.ipf(data, model.relations, varList, ipfConfig)
     result.fitTable = ipfResult.fitTable
     result.iterations = ipfResult.iterations
     result.error = ipfResult.error
     result.usedIPF = true
     result.jtFailed = false
+    result.fitType = ftIPF
+    if config.recordTiming:
+      result.fitTimeNs = inNanoseconds(getMonoTime() - startTime)
+      result.ipfTotalNs = ipfResult.totalTimeNs
+      result.ipfIterTimesNs = ipfResult.iterationTimesNs
   else:
     # Use belief propagation for loopless (decomposable) models
     # Build junction tree and run exact inference
@@ -139,6 +183,11 @@ proc fitModelTable*(data: coretable.ContingencyTable; model: Model; varList: Var
       result.error = 0.0
       result.usedIPF = false
       result.jtFailed = false
+      result.fitType = ftLoopless
+      if config.recordTiming:
+        result.fitTimeNs = inNanoseconds(getMonoTime() - startTime)
+        result.bpCollectNs = bpResult.collectPhaseNs
+        result.bpDistributeNs = bpResult.distributePhaseNs
     else:
       # Junction tree construction failed
       result.jtFailed = true
@@ -146,12 +195,22 @@ proc fitModelTable*(data: coretable.ContingencyTable; model: Model; varList: Var
         raise newException(JunctionTreeError,
           "Failed to build junction tree for model: " & $model)
       # Fallback to IPF if junction tree construction fails
-      let ipfConfig = ipf.initIPFConfig(raiseOnNonConvergence = config.raiseOnNonConvergence)
+      let ipfConfig = ipf.initIPFConfig(
+        raiseOnNonConvergence = config.raiseOnNonConvergence,
+        recordIterationTimes = config.recordTiming,
+        progressCallback = config.ipfProgressCallback,
+        progressInterval = config.ipfProgressInterval
+      )
       let ipfResult = ipf.ipf(data, model.relations, varList, ipfConfig)
       result.fitTable = ipfResult.fitTable
       result.iterations = ipfResult.iterations
       result.error = ipfResult.error
       result.usedIPF = true
+      result.fitType = ftIPF
+      if config.recordTiming:
+        result.fitTimeNs = inNanoseconds(getMonoTime() - startTime)
+        result.ipfTotalNs = ipfResult.totalTimeNs
+        result.ipfIterTimesNs = ipfResult.iterationTimesNs
 
 
 proc computeResiduals*(observed: coretable.ContingencyTable; fitted: coretable.ContingencyTable;
@@ -180,5 +239,5 @@ proc computeResiduals*(observed: coretable.ContingencyTable; fitted: coretable.C
 
 
 # Export all pure functions
-export FitInfo, FitConfig
+export FitType, FitInfo, FitConfig
 export initFitConfig, fitIndependenceModel, fitModelTable, computeResiduals

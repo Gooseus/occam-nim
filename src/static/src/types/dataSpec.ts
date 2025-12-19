@@ -44,9 +44,15 @@ export interface SearchProgress {
   currentLevel: number;
   totalLevels: number;
   modelsEvaluated: number;
+  looplessModels?: number;  // Models without loops (fast BP)
+  loopModels?: number;      // Models with loops (slow IPF)
   bestModelName?: string;
   bestStatistic?: number;
   statisticName?: string;
+  // Timing info
+  levelTimeMs?: number;     // Time for this level in ms
+  elapsedMs?: number;       // Total elapsed time in ms
+  avgModelTimeMs?: number;  // Average time per model in ms
 }
 
 // Fit types

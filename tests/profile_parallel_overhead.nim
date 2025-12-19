@@ -2,7 +2,7 @@
 ##
 ## Measures where the overhead comes from in parallel search.
 
-import std/[times, strformat, strutils, cpuinfo, json, os]
+import std/[times, monotimes, strformat, strutils, cpuinfo, json, os]
 import std/tables as stdtables
 import ../src/occam/core/types
 import ../src/occam/core/variable
@@ -65,67 +65,67 @@ proc main() =
   echo "State space: ", inputTable.len
   echo ""
 
-  # Test 1: Single VBManager creation time
+  # Test 1: Single VBManager creation time - wall clock
   echo "Test 1: VBManager creation time"
-  let t1Start = cpuTime()
+  let t1Start = getMonoTime()
   for i in 0..<10:
     var mgr = newVBManager(varList, inputTable)
     let bottomModel = mgr.bottomRefModel
     discard mgr.computeAIC(bottomModel)
-  let t1Ms = (cpuTime() - t1Start) * 1000.0 / 10.0
+  let t1Ms = float64(inNanoseconds(getMonoTime() - t1Start)) / 1_000_000.0 / 10.0
   echo &"  Single VBManager creation + one AIC: {t1Ms:.1f}ms"
 
-  # Test 2: AIC computation only (reuse manager)
+  # Test 2: AIC computation only (reuse manager) - wall clock
   var mgr = newVBManager(varList, inputTable)
   let bottomModel = mgr.bottomRefModel
 
   echo ""
   echo "Test 2: AIC computation (reusing VBManager)"
-  let t2Start = cpuTime()
+  let t2Start = getMonoTime()
   for i in 0..<100:
     discard mgr.computeAIC(bottomModel)
-  let t2Ms = (cpuTime() - t2Start) * 1000.0 / 100.0
+  let t2Ms = float64(inNanoseconds(getMonoTime() - t2Start)) / 1_000_000.0 / 100.0
   echo &"  Single AIC computation: {t2Ms:.2f}ms"
 
-  # Test 3: Generate neighbors
+  # Test 3: Generate neighbors - wall clock
   echo ""
   echo "Test 3: Neighbor generation + evaluation"
   let search = initLooplessSearch(mgr, 5, 10)
-  let t3Start = cpuTime()
+  let t3Start = getMonoTime()
   let neighbors = search.generateNeighbors(bottomModel)
-  let t3Gen = (cpuTime() - t3Start) * 1000.0
+  let t3Gen = float64(inNanoseconds(getMonoTime() - t3Start)) / 1_000_000.0
   echo &"  Generated {neighbors.len} neighbors in {t3Gen:.1f}ms"
 
-  let t3EvalStart = cpuTime()
+  let t3EvalStart = getMonoTime()
   for n in neighbors:
     discard mgr.computeAIC(n)
-  let t3Eval = (cpuTime() - t3EvalStart) * 1000.0
+  let t3Eval = float64(inNanoseconds(getMonoTime() - t3EvalStart)) / 1_000_000.0
   echo &"  Evaluated {neighbors.len} neighbors in {t3Eval:.1f}ms"
   echo &"  Per-neighbor eval time: {t3Eval / float64(neighbors.len):.2f}ms"
 
-  # Test 4: Full seed processing WITH new VBManager
+  # Test 4: Full seed processing WITH new VBManager - wall clock
   echo ""
   echo "Test 4: Full seed processing comparison"
 
   # With new manager each time
-  let t4NewMgrStart = cpuTime()
+  let t4NewMgrStart = getMonoTime()
   for i in 0..<5:
     var newMgr = newVBManager(varList, inputTable)
     let newSearch = initLooplessSearch(newMgr, 5, 10)
     let newNeighbors = newSearch.generateNeighbors(bottomModel)
     for n in newNeighbors:
       discard newMgr.computeAIC(n)
-  let t4NewMgr = (cpuTime() - t4NewMgrStart) * 1000.0 / 5.0
+  let t4NewMgr = float64(inNanoseconds(getMonoTime() - t4NewMgrStart)) / 1_000_000.0 / 5.0
   echo &"  With NEW VBManager per seed: {t4NewMgr:.1f}ms"
 
   # Reusing manager
-  let t4ReuseMgrStart = cpuTime()
+  let t4ReuseMgrStart = getMonoTime()
   for i in 0..<5:
     let reuseSearch = initLooplessSearch(mgr, 5, 10)
     let reuseNeighbors = reuseSearch.generateNeighbors(bottomModel)
     for n in reuseNeighbors:
       discard mgr.computeAIC(n)
-  let t4ReuseMgr = (cpuTime() - t4ReuseMgrStart) * 1000.0 / 5.0
+  let t4ReuseMgr = float64(inNanoseconds(getMonoTime() - t4ReuseMgrStart)) / 1_000_000.0 / 5.0
   echo &"  REUSING VBManager: {t4ReuseMgr:.1f}ms"
 
   let overhead = t4NewMgr / t4ReuseMgr
@@ -133,7 +133,7 @@ proc main() =
   echo &"  VBManager creation overhead: {overhead:.2f}x"
   echo ""
 
-  # Test 5: Multiple seeds - sequential vs isolated
+  # Test 5: Multiple seeds - sequential vs isolated - wall clock
   echo ""
   echo "Test 5: Multiple seeds - cache sharing effect"
 
@@ -147,22 +147,22 @@ proc main() =
   echo &"  Testing with {seeds.len} seeds"
 
   # Sequential with shared manager (cache persists)
-  let t5SharedStart = cpuTime()
+  let t5SharedStart = getMonoTime()
   for seed in seeds:
     let s = initLooplessSearch(mgr, 5, 10)
     for n in s.generateNeighbors(seed):
       discard mgr.computeAIC(n)
-  let t5Shared = (cpuTime() - t5SharedStart) * 1000.0
+  let t5Shared = float64(inNanoseconds(getMonoTime() - t5SharedStart)) / 1_000_000.0
   echo &"  Sequential (shared cache): {t5Shared:.1f}ms"
 
   # Sequential with NEW manager each seed (simulates parallel)
-  let t5IsolatedStart = cpuTime()
+  let t5IsolatedStart = getMonoTime()
   for seed in seeds:
     var isolatedMgr = newVBManager(varList, inputTable)
     let s = initLooplessSearch(isolatedMgr, 5, 10)
     for n in s.generateNeighbors(seed):
       discard isolatedMgr.computeAIC(n)
-  let t5Isolated = (cpuTime() - t5IsolatedStart) * 1000.0
+  let t5Isolated = float64(inNanoseconds(getMonoTime() - t5IsolatedStart)) / 1_000_000.0
   echo &"  Isolated (new cache each): {t5Isolated:.1f}ms"
 
   let cacheEffect = t5Isolated / t5Shared

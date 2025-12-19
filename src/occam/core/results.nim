@@ -6,6 +6,7 @@
 import types
 import table as coretable
 import relation
+import profile
 
 type
   FitResult* = object
@@ -27,6 +28,8 @@ type
     ipfIterations*: int          # Iterations (0 if algebraic)
     ipfError*: float64           # Final IPF error
     hasLoops*: bool              # Whether model has loops
+    # Resource profiling (populated when profiling enabled)
+    profile*: ResourceProfile    # Detailed timing/memory profile (optional)
 
 
   RelationMetrics* = object
@@ -57,3 +60,7 @@ type
     accuracy*: float64              # Overall accuracy
     perClassPrecision*: seq[float64]  # Precision per class
     perClassRecall*: seq[float64]     # Recall per class
+
+
+# Re-export profile types for convenience
+export profile

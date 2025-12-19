@@ -2,15 +2,17 @@
 ##
 ## Implements the fit command for detailed single-model analysis
 
-import std/[strformat, strutils]
+import std/[strformat, strutils, json, monotimes, times]
 import ../occam/core/types
 import ../occam/core/variable
 import ../occam/core/model
 import ../occam/core/relation
 import ../occam/core/table
 import ../occam/core/key
+import ../occam/core/profile
 import ../occam/io/parser
 import ../occam/manager/vb
+import ../occam/manager/fitting
 import formatting
 
 
@@ -20,7 +22,9 @@ proc fit*(input: string;
           residuals = false;
           conditionalDv = false;
           confusionMatrix = false;
-          verbose = false): int =
+          verbose = false;
+          profile = false;
+          profileOutput = ""): int =
   ## Fit a single model and display detailed statistics
   ##
   ## Arguments:
@@ -31,6 +35,8 @@ proc fit*(input: string;
   ##   conditionalDv: Show conditional DV table (directed systems)
   ##   confusionMatrix: Show confusion matrix (directed systems)
   ##   verbose: Show detailed output
+  ##   profile: Enable resource profiling and output JSON profile data
+  ##   profileOutput: Write profile JSON to file (default: stdout)
 
   if input == "":
     echo "Error: Input file required"
@@ -51,8 +57,16 @@ proc fit*(input: string;
     echo &"Sample size: {spec.sampleSize}"
     echo ""
 
-  # Create manager
-  var mgr = newVBManager(varList, inputTable)
+  # Create manager with optional profiling
+  let profileConfig = if profile:
+    initProfileConfig(pgOperations, trackMemory = true)
+  else:
+    initProfileConfig(pgNone)
+  var mgr = initVBManager(varList, inputTable, profileConfig = profileConfig)
+
+  # Track timing if profiling
+  let fitStartTime = if profile: getMonoTime() else: MonoTime()
+  let startMemory = if profile and profileConfig.trackMemory: getCurrentMemoryBytes() else: 0'i64
 
   # Parse and fit the model
   let m = mgr.makeModel(model)
@@ -63,6 +77,9 @@ proc fit*(input: string;
     echo ""
 
   let fitResult = mgr.fitModel(m)
+
+  # Record fit timing
+  let fitTimeNs = if profile: inNanoseconds(getMonoTime() - fitStartTime) else: 0'i64
 
   # Print model summary
   printHeader("Model Fit Report")
@@ -245,6 +262,42 @@ proc fit*(input: string;
       for k in 0..<dvCard:
         echo &"  {cm.labels[k]:<8}  {formatFloat(cm.perClassPrecision[k], ffDecimal, 3):<10} {formatFloat(cm.perClassRecall[k], ffDecimal, 3)}"
       echo ""
+
+  # Output profile data if profiling was enabled
+  if profile:
+    var resourceProfile = mgr.getResourceProfile()
+    resourceProfile.totalTimeNs = fitTimeNs
+    resourceProfile.startMemoryBytes = startMemory
+    resourceProfile.peakMemoryBytes = getPeakMemoryBytes()
+
+    let profileJson = resourceProfile.toJson()
+
+    # Add fit parameters to profile
+    profileJson["fitParams"] = %*{
+      "model": modelName,
+      "hasLoops": fitResult.hasLoops,
+      "ipfIterations": fitResult.ipfIterations,
+      "compare": compare
+    }
+
+    # Add fit statistics to profile
+    profileJson["statistics"] = %*{
+      "h": fitResult.h,
+      "t": fitResult.t,
+      "df": fitResult.df,
+      "ddf": fitResult.ddf,
+      "lr": fitResult.lr,
+      "aic": fitResult.aic,
+      "bic": fitResult.bic,
+      "alpha": fitResult.alpha
+    }
+
+    if profileOutput != "":
+      writeFile(profileOutput, profileJson.pretty())
+      echo &"\nProfile written to: {profileOutput}"
+    else:
+      echo "\n--- Resource Profile (JSON) ---"
+      echo profileJson.pretty()
 
   return 0
 

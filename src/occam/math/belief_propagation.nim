@@ -13,7 +13,7 @@
 
 {.push raises: [].}
 
-import std/[algorithm, math, options]
+import std/[algorithm, math, options, monotimes, times]
 import ../core/types
 import ../core/variable
 import ../core/key
@@ -30,6 +30,10 @@ type
     separatorPotentials*: seq[coretable.ContingencyTable]  # Separator potentials
     converged*: bool
     iterations*: int  # Always 2 for exact BP (collect + distribute)
+    # Timing information
+    totalTimeNs*: int64          ## Total BP execution time
+    collectPhaseNs*: int64       ## Time for collect phase (leaves to root)
+    distributePhaseNs*: int64    ## Time for distribute phase (root to leaves)
 
   BPConfig* = object
     ## Configuration for belief propagation
@@ -188,6 +192,8 @@ proc beliefPropagation*(inputTable: coretable.ContingencyTable;
   ## Returns:
   ##   BPResult with calibrated potentials
 
+  let bpStartTime = getMonoTime()
+
   let n = jt.cliques.len
   result.iterations = 2  # collect + distribute
   result.converged = true
@@ -229,6 +235,7 @@ proc beliefPropagation*(inputTable: coretable.ContingencyTable;
 
   # ========== COLLECT PHASE (leaves to root) ==========
   # Process cliques in post-order (children before parents)
+  let collectStartTime = getMonoTime()
   let postOrderSeq = jt.postOrder()
 
   for cliqueIdx in postOrderSeq:
@@ -273,8 +280,11 @@ proc beliefPropagation*(inputTable: coretable.ContingencyTable;
         sep.variables
       )
 
+  result.collectPhaseNs = inNanoseconds(getMonoTime() - collectStartTime)
+
   # ========== DISTRIBUTE PHASE (root to leaves) ==========
   # Process cliques in pre-order (parents before children)
+  let distributeStartTime = getMonoTime()
   let preOrderSeq = jt.preOrder()
 
   for cliqueIdx in preOrderSeq:
@@ -315,6 +325,9 @@ proc beliefPropagation*(inputTable: coretable.ContingencyTable;
           child.varIndices,
           sep.variables
         )
+
+  result.distributePhaseNs = inNanoseconds(getMonoTime() - distributeStartTime)
+  result.totalTimeNs = inNanoseconds(getMonoTime() - bpStartTime)
 
   # Normalize potentials if requested
   if config.normalize:

@@ -6,7 +6,7 @@
 
 {.push raises: [].}
 
-import std/[options, tables]
+import std/[options, tables, monotimes, times]
 import ../core/types
 import ../core/variable
 import ../core/key
@@ -16,18 +16,37 @@ import ../core/errors
 import ../core/iterators
 
 type
+  IPFProgressCallback* = proc(iteration: int; maxIterations: int; error: float64;
+                               stateCount: int; relationCount: int) {.gcsafe.}
+    ## Callback for IPF progress reporting
+    ## Called every N iterations (controlled by progressInterval)
+    ##
+    ## Parameters:
+    ##   iteration: Current iteration number (1-based)
+    ##   maxIterations: Maximum iterations allowed
+    ##   error: Current convergence error
+    ##   stateCount: Number of states in fit table
+    ##   relationCount: Number of relations in model
+
   IPFResult* = object
     ## Result of IPF algorithm
     fitTable*: coretable.ContingencyTable    # Fitted probability distribution
     iterations*: int              # Iterations to converge
     error*: float64               # Final maximum error
     converged*: bool              # Whether convergence was achieved
+    # Timing information (populated when recordIterationTimes = true)
+    totalTimeNs*: int64           # Total wall-clock time in nanoseconds
+    iterationTimesNs*: seq[int64] # Time per iteration in nanoseconds
+    errorHistory*: seq[float64]   # Error at each iteration
 
   IPFConfig* = object
     ## Configuration for IPF algorithm
     maxIterations*: int             # Maximum iterations (default: 1000)
     convergenceThreshold*: float64  # Convergence threshold (default: 1e-7)
     raiseOnNonConvergence*: bool    # Raise ConvergenceError if not converged (default: false)
+    recordIterationTimes*: bool     # Record per-iteration timing (default: false)
+    progressCallback*: IPFProgressCallback  # Optional progress callback
+    progressInterval*: int          # Call progress every N iterations (default: 100)
 
 const
   DefaultMaxIterations* = 1000
@@ -37,11 +56,17 @@ const
 
 func initIPFConfig*(maxIterations = DefaultMaxIterations;
                     convergenceThreshold = DefaultConvergenceThreshold;
-                    raiseOnNonConvergence = false): IPFConfig =
+                    raiseOnNonConvergence = false;
+                    recordIterationTimes = false;
+                    progressCallback: IPFProgressCallback = nil;
+                    progressInterval = 100): IPFConfig =
   IPFConfig(
     maxIterations: maxIterations,
     convergenceThreshold: convergenceThreshold,
-    raiseOnNonConvergence: raiseOnNonConvergence
+    raiseOnNonConvergence: raiseOnNonConvergence,
+    recordIterationTimes: recordIterationTimes,
+    progressCallback: progressCallback,
+    progressInterval: progressInterval
   )
 
 
@@ -203,36 +228,62 @@ proc ipf*(inputTable: coretable.ContingencyTable;
   ##
   ## Returns:
   ##   IPFResult with fitted table, iterations, error, and convergence status
+  ##   When config.recordIterationTimes is true, also includes:
+  ##   - totalTimeNs: Total wall-clock time
+  ##   - iterationTimesNs: Time per iteration
+  ##   - errorHistory: Error at each iteration
+
+  let startTime = getMonoTime()
 
   result.iterations = 0
   result.error = 0.0
   result.converged = false
+  result.totalTimeNs = 0
+  result.iterationTimesNs = @[]
+  result.errorHistory = @[]
 
   if relations.len == 0:
     result.fitTable = inputTable
     result.converged = true
+    result.totalTimeNs = inNanoseconds(getMonoTime() - startTime)
     return
 
   # Check if single relation covers all variables (saturated model)
   if relations.len == 1 and relations[0].variableCount == varList.len:
     result.fitTable = inputTable
     result.converged = true
+    result.totalTimeNs = inNanoseconds(getMonoTime() - startTime)
     return
 
   # Initialize fit table with orthogonal expansion of first relation
   var fitTable = makeOrthoExpansion(inputTable, relations[0], varList)
 
+  # Diagnostic logging for expensive IPF operations
+  if fitTable.len > 10000:
+    try:
+      stderr.writeLine("[IPF] Large fit table: " & $fitTable.len & " states, " & $relations.len & " relations")
+    except IOError:
+      discard
+
   # If only one relation and it's not saturated, we're already done
   if relations.len == 1:
     result.fitTable = fitTable
     result.converged = true
+    result.totalTimeNs = inNanoseconds(getMonoTime() - startTime)
     return
 
   # Compute initial error before any iterations
   var prevError = computeMarginalError(fitTable, inputTable, relations, varList)
 
+  # Pre-allocate timing arrays if recording
+  if config.recordIterationTimes:
+    result.iterationTimesNs = newSeqOfCap[int64](config.maxIterations)
+    result.errorHistory = newSeqOfCap[float64](config.maxIterations)
+
   # IPF iteration loop
   for iter in 0..<config.maxIterations:
+    let iterStart = getMonoTime()
+
     result.iterations = iter + 1
 
     # Cycle through all relations, scaling to match marginals
@@ -242,6 +293,21 @@ proc ipf*(inputTable: coretable.ContingencyTable;
     # Compute error after this iteration (across ALL marginals)
     let currentError = computeMarginalError(fitTable, inputTable, relations, varList)
     result.error = currentError
+
+    # Record timing and error history if configured
+    if config.recordIterationTimes:
+      result.iterationTimesNs.add(inNanoseconds(getMonoTime() - iterStart))
+      result.errorHistory.add(currentError)
+
+    # Call progress callback if configured
+    if config.progressCallback != nil and
+       (result.iterations mod config.progressInterval == 0 or result.iterations == 1):
+      {.cast(raises: []).}:
+        try:
+          config.progressCallback(result.iterations, config.maxIterations, currentError,
+                                   fitTable.len, relations.len)
+        except:
+          discard  # Don't let callback errors interrupt IPF
 
     # Check convergence
     if currentError < config.convergenceThreshold:
@@ -261,6 +327,18 @@ proc ipf*(inputTable: coretable.ContingencyTable;
   let total = result.fitTable.sum()
   if total > 0.0 and abs(total - 1.0) > 1e-10:
     result.fitTable.normalize()
+
+  # Record total time
+  result.totalTimeNs = inNanoseconds(getMonoTime() - startTime)
+
+  # Diagnostic logging for slow IPF
+  let totalMs = result.totalTimeNs.float / 1_000_000.0
+  if totalMs > 1000.0:
+    try:
+      stderr.writeLine("[IPF] SLOW: " & $result.iterations & " iters, " & $fitTable.len & " states, " &
+                       $relations.len & " relations, " & $(totalMs.int) & "ms, converged=" & $result.converged)
+    except IOError:
+      discard
 
   # Raise error if configured and not converged
   if config.raiseOnNonConvergence and not result.converged:

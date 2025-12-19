@@ -5,7 +5,7 @@
 ##
 ## Run with: nim c -r -d:release --threads:on tests/benchmark_parallel_crossover.nim
 
-import std/[times, strformat, strutils, cpuinfo, math]
+import std/[times, monotimes, strformat, strutils, cpuinfo, math]
 import ../src/occam/core/types
 import ../src/occam/core/variable
 import ../src/occam/core/key
@@ -129,23 +129,23 @@ proc runTest(desc: string; varList: VariableList; inputTable: coretable.Table;
     discard mgr.computeAIC(models[0])
     discard parallelComputeAIC(varList, inputTable, @[models[0]])
 
-  # Sequential timing (best of numRuns)
+  # Sequential timing (best of numRuns) - use wall clock time
   var bestSeq = float64.high
   for _ in 1..numRuns:
     var mgr2 = newVBManager(varList, inputTable)
-    let start = cpuTime()
+    let start = getMonoTime()
     for model in models:
       discard mgr2.computeAIC(model)
-    let elapsed = (cpuTime() - start) * 1000.0
+    let elapsed = float64(inNanoseconds(getMonoTime() - start)) / 1_000_000.0
     if elapsed < bestSeq:
       bestSeq = elapsed
 
-  # Parallel timing (best of numRuns)
+  # Parallel timing (best of numRuns) - use wall clock time
   var bestPar = float64.high
   for _ in 1..numRuns:
-    let start = cpuTime()
+    let start = getMonoTime()
     discard parallelComputeAIC(varList, inputTable, models)
-    let elapsed = (cpuTime() - start) * 1000.0
+    let elapsed = float64(inNanoseconds(getMonoTime() - start)) / 1_000_000.0
     if elapsed < bestPar:
       bestPar = elapsed
 

@@ -31,3 +31,6 @@ task build, "Build web server with release optimizations":
 
 task dev, "Run in development mode":
   exec "nim c -r -d:logging --threads:on ../../src/web.nim"
+
+task jsbin, "Build JavaScript binning module for browser":
+  exec "nim js -d:release -o:../../src/static/public/binning.js ../../src/occam_binning_js.nim"

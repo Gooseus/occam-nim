@@ -261,5 +261,7 @@ proc toTable*(spec: DataSpec; varList: VariableList): coretable.ContingencyTable
     let count = if rowIdx < spec.counts.len: spec.counts[rowIdx] else: 1.0
     result.add(k, count)
 
+  # Sort and merge duplicates
   result.sort()
+  result.sumInto()
 

@@ -48,17 +48,49 @@ export function ProgressBar({ status, progress }: ProgressBarProps) {
       {progress && (
         <div style={styles.details}>
           <div style={styles.detailItem}>
-            <span style={styles.detailLabel}>Models Evaluated:</span>
+            <span style={styles.detailLabel}>Models:</span>
             <span style={styles.detailValue}>{progress.modelsEvaluated}</span>
           </div>
+          {/* Loop breakdown */}
+          {(progress.looplessModels !== undefined || progress.loopModels !== undefined) && (
+            <div style={styles.detailItem}>
+              <span style={styles.detailLabel}>Breakdown:</span>
+              <span style={{
+                ...styles.detailValue,
+                color: progress.loopModels && progress.loopModels > 0 ? '#e74c3c' : '#27ae60'
+              }}>
+                {progress.looplessModels || 0} loopless
+                {progress.loopModels && progress.loopModels > 0 &&
+                  <span style={{ color: '#e74c3c' }}> + {progress.loopModels} loops</span>
+                }
+              </span>
+            </div>
+          )}
+          {/* Timing info */}
+          {progress.elapsedMs !== undefined && (
+            <div style={styles.detailItem}>
+              <span style={styles.detailLabel}>Time:</span>
+              <span style={styles.detailValue}>
+                {progress.elapsedMs < 1000
+                  ? `${progress.elapsedMs.toFixed(0)}ms`
+                  : `${(progress.elapsedMs / 1000).toFixed(1)}s`
+                }
+                {progress.avgModelTimeMs !== undefined && (
+                  <span style={{ color: '#666', fontWeight: 'normal' }}>
+                    {' '}({progress.avgModelTimeMs.toFixed(1)}ms/model)
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
           {progress.bestModelName && (
             <>
               <div style={styles.detailItem}>
-                <span style={styles.detailLabel}>Best Model:</span>
+                <span style={styles.detailLabel}>Best:</span>
                 <span style={styles.detailValue}>{progress.bestModelName}</span>
               </div>
               <div style={styles.detailItem}>
-                <span style={styles.detailLabel}>{progress.statisticName || 'Statistic'}:</span>
+                <span style={styles.detailLabel}>{progress.statisticName || 'Stat'}:</span>
                 <span style={styles.detailValue}>
                   {progress.bestStatistic?.toFixed(4) || '-'}
                 </span>

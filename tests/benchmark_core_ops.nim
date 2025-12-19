@@ -6,7 +6,7 @@
 ##
 ## Run with: nim c -r -d:release tests/benchmark_core_ops.nim
 
-import std/[times, strformat, strutils, options]
+import std/[times, monotimes, strformat, strutils, options]
 import ../src/occam/core/types
 import ../src/occam/core/variable
 import ../src/occam/core/key
@@ -43,14 +43,14 @@ proc runBenchmark(name: string; opsPerRun: int; warmup, runs: int;
   for _ in 0..<warmup:
     body()
 
-  # Benchmark
-  let start = cpuTime()
+  # Benchmark (wall clock)
+  let start = getMonoTime()
   for _ in 0..<runs:
     body()
-  let elapsed = cpuTime() - start
+  let elapsedNs = inNanoseconds(getMonoTime() - start)
 
-  result.totalMs = elapsed * 1000.0
-  result.avgNsPerOp = (elapsed * 1_000_000_000.0) / float64(runs * opsPerRun)
+  result.totalMs = float64(elapsedNs) / 1_000_000.0
+  result.avgNsPerOp = float64(elapsedNs) / float64(runs * opsPerRun)
 
 
 proc printResults(results: seq[BenchResult]) =

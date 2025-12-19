@@ -33,10 +33,22 @@ type
     totalLevels*: int
     modelsEvaluated*: int
     totalModelsEvaluated*: int   ## Used in search_complete event
+    looplessModels*: int         ## Models without loops (fast BP)
+    loopModels*: int             ## Models with loops (slow IPF)
     bestModelName*: string
     bestStatistic*: float64
     statisticName*: string
     timestamp*: float64
+    # Timing info
+    levelTimeMs*: float64        ## Time for this level in milliseconds
+    elapsedMs*: float64          ## Total elapsed time in milliseconds
+    avgModelTimeMs*: float64     ## Average time per model in milliseconds
+    # IPF progress info (for ipf_progress event)
+    ipfIteration*: int           ## Current IPF iteration
+    ipfMaxIterations*: int       ## Max IPF iterations
+    ipfError*: float64           ## Current IPF convergence error
+    ipfStateCount*: int          ## Number of states in fit table
+    ipfRelationCount*: int       ## Number of relations in model
 
   WSProgressMessage* = object
     ## Server → Client progress message
@@ -125,10 +137,20 @@ proc toJson*(msg: WSProgressMessage): string =
       "totalLevels": msg.data.totalLevels,
       "modelsEvaluated": msg.data.modelsEvaluated,
       "totalModelsEvaluated": msg.data.totalModelsEvaluated,
+      "looplessModels": msg.data.looplessModels,
+      "loopModels": msg.data.loopModels,
       "bestModelName": msg.data.bestModelName,
       "bestStatistic": msg.data.bestStatistic,
       "statisticName": msg.data.statisticName,
-      "timestamp": msg.data.timestamp
+      "timestamp": msg.data.timestamp,
+      "levelTimeMs": msg.data.levelTimeMs,
+      "elapsedMs": msg.data.elapsedMs,
+      "avgModelTimeMs": msg.data.avgModelTimeMs,
+      "ipfIteration": msg.data.ipfIteration,
+      "ipfMaxIterations": msg.data.ipfMaxIterations,
+      "ipfError": msg.data.ipfError,
+      "ipfStateCount": msg.data.ipfStateCount,
+      "ipfRelationCount": msg.data.ipfRelationCount
     }
   }
   result = $node

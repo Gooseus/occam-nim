@@ -5,7 +5,7 @@
 ##
 ## Run: nim c -r -d:release --threads:on tests/benchmark_parallel_search.nim
 
-import std/[times, strformat, strutils, cpuinfo, math]
+import std/[times, monotimes, strformat, strutils, cpuinfo, math]
 import ../src/occam/core/types
 import ../src/occam/core/variable
 import ../src/occam/core/key
@@ -75,25 +75,25 @@ proc runSearchBenchmark(
     SearchAIC, width, levels, useParallel = false
   )
 
-  # Sequential timing (average of 3 runs)
-  let seqStart = cpuTime()
+  # Sequential timing (average of 3 runs) - wall clock
+  let seqStart = getMonoTime()
   var seqResults: seq[SearchCandidate]
   for _ in 1..3:
     seqResults = parallelSearch(
       varList, inputTable, startModel, SearchLoopless,
       SearchAIC, width, levels, useParallel = false
     )
-  let seqMs = (cpuTime() - seqStart) * 1000.0 / 3.0
+  let seqMs = float64(inNanoseconds(getMonoTime() - seqStart)) / 1_000_000.0 / 3.0
 
-  # Parallel timing (average of 3 runs)
-  let parStart = cpuTime()
+  # Parallel timing (average of 3 runs) - wall clock
+  let parStart = getMonoTime()
   var parResults: seq[SearchCandidate]
   for _ in 1..3:
     parResults = parallelSearch(
       varList, inputTable, startModel, SearchLoopless,
       SearchAIC, width, levels, useParallel = true
     )
-  let parMs = (cpuTime() - parStart) * 1000.0 / 3.0
+  let parMs = float64(inNanoseconds(getMonoTime() - parStart)) / 1_000_000.0 / 3.0
 
   let speedup = if parMs > 0.1: seqMs / parMs else: 0.0
 

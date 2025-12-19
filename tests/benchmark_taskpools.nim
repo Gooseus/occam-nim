@@ -4,7 +4,7 @@
 ##
 ## Run: nim c -r -d:release --threads:on tests/benchmark_taskpools.nim
 
-import std/[times, strformat, strutils, cpuinfo, math]
+import std/[times, monotimes, strformat, strutils, cpuinfo, math]
 import ../src/occam/core/types
 import ../src/occam/core/variable
 import ../src/occam/core/key
@@ -112,21 +112,21 @@ proc main() =
     var mgr = newVBManager(varList, inputTable)
     discard mgr.computeAIC(models[0])
 
-    # Sequential
-    let seqStart = cpuTime()
+    # Sequential (wall clock time)
+    let seqStart = getMonoTime()
     for model in models:
       discard mgr.computeAIC(model)
-    let seqMs = (cpuTime() - seqStart) * 1000.0
+    let seqMs = float64(inNanoseconds(getMonoTime() - seqStart)) / 1_000_000.0
 
-    # Old threadpool
-    let oldStart = cpuTime()
+    # Old threadpool (wall clock time)
+    let oldStart = getMonoTime()
     discard oldParallel.parallelComputeAIC(varList, inputTable, models)
-    let oldMs = (cpuTime() - oldStart) * 1000.0
+    let oldMs = float64(inNanoseconds(getMonoTime() - oldStart)) / 1_000_000.0
 
-    # Taskpools
-    let tpStart = cpuTime()
+    # Taskpools (wall clock time)
+    let tpStart = getMonoTime()
     discard tpParallel.parallelComputeAIC_TP(varList, inputTable, models)
-    let tpMs = (cpuTime() - tpStart) * 1000.0
+    let tpMs = float64(inNanoseconds(getMonoTime() - tpStart)) / 1_000_000.0
 
     let tpSpeedup = if tpMs > 0.1: seqMs / tpMs else: 0.0
     let marker = if tpSpeedup > 1.1: " <<<"

@@ -5,7 +5,7 @@
 ##
 ## Run with: nim c -r -d:release tests/benchmark_ipf_vs_bp.nim
 
-import std/[times, strformat, strutils, math, sequtils, algorithm]
+import std/[times, monotimes, strformat, strutils, math, sequtils, algorithm]
 import ../src/occam/core/types
 import ../src/occam/core/variable
 import ../src/occam/core/key
@@ -93,22 +93,22 @@ proc benchmarkModel(name: string; varList: VariableList; model: Model;
   discard ipf.ipf(inputTable, model.relations, varList)
   discard bp.beliefPropagation(inputTable, jtResult.tree, varList)
 
-  # Benchmark IPF
+  # Benchmark IPF (wall clock)
   var ipfTimes: seq[float64]
   var totalIpfIter = 0
   for _ in 0..<runs:
-    let start = cpuTime()
+    let start = getMonoTime()
     let ipfResult = ipf.ipf(inputTable, model.relations, varList)
-    let elapsed = (cpuTime() - start) * 1000.0
+    let elapsed = float64(inNanoseconds(getMonoTime() - start)) / 1_000_000.0
     ipfTimes.add(elapsed)
     totalIpfIter += ipfResult.iterations
 
-  # Benchmark BP
+  # Benchmark BP (wall clock)
   var bpTimes: seq[float64]
   for _ in 0..<runs:
-    let start = cpuTime()
+    let start = getMonoTime()
     discard bp.beliefPropagation(inputTable, jtResult.tree, varList)
-    let elapsed = (cpuTime() - start) * 1000.0
+    let elapsed = float64(inNanoseconds(getMonoTime() - start)) / 1_000_000.0
     bpTimes.add(elapsed)
 
   # Calculate median times

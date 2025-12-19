@@ -3,12 +3,13 @@
 ## Implements the main search command for exploring model space
 ## Uses parallelization by default for optimal performance.
 
-import std/[strformat, strutils, algorithm, cpuinfo, os]
+import std/[strformat, strutils, algorithm, cpuinfo, os, json]
 import ../occam/core/types
 import ../occam/core/variable
 import ../occam/core/table as coretable
 import ../occam/core/model
 import ../occam/core/progress
+import ../occam/core/profile
 import ../occam/io/parser
 import ../occam/manager/vb
 import ../occam/search/parallel
@@ -25,7 +26,9 @@ proc search*(input: string;
              sort = "ddf";
              parallel = true;
              verbose = false;
-             showProgress = true): int =
+             showProgress = true;
+             profile = false;
+             profileOutput = ""): int =
   ## Search model space for best-fitting models
   ##
   ## Arguments:
@@ -38,6 +41,8 @@ proc search*(input: string;
   ##   parallel: Use parallel search (default: true, uses all CPU cores)
   ##   verbose: Show detailed output
   ##   showProgress: Show progress during search (default: true)
+  ##   profile: Enable resource profiling and output JSON profile data
+  ##   profileOutput: Write profile JSON to file (default: stdout)
 
   if input == "":
     echo "Error: Input file required"
@@ -153,19 +158,35 @@ proc search*(input: string;
   printSeparator(80)
 
   # Create progress config
-  let progressConfig = if showProgress:
+  let progressConfig = if showProgress and not profile:
     initProgressConfig(callback = makeCLIProgressCallback(verbose))
   else:
     initProgressConfig()
 
-  # Use parallel search (parallelization enabled by default)
-  let results = parallelSearch(
-    varList, inputTable, startModel,
-    searchFilter, searchStat,
-    width, levels,
-    useParallel = parallel,
-    progress = progressConfig
-  )
+  # Run search - use profiled version if profiling enabled
+  var results: seq[SearchCandidate]
+  var resourceProfile: ResourceProfile
+
+  if profile:
+    let profileConfig = initProfileConfig(pgOperations, trackMemory = true)
+    let (searchResults, profResult) = parallelSearchProfiled(
+      varList, inputTable, startModel,
+      searchFilter, searchStat,
+      width, levels,
+      useParallel = parallel,
+      progress = progressConfig,
+      profileConfig = profileConfig
+    )
+    results = searchResults
+    resourceProfile = profResult
+  else:
+    results = parallelSearch(
+      varList, inputTable, startModel,
+      searchFilter, searchStat,
+      width, levels,
+      useParallel = parallel,
+      progress = progressConfig
+    )
 
   echo ""
   echo "Best Models Found:"
@@ -178,5 +199,36 @@ proc search*(input: string;
 
   echo ""
   echo &"Total models explored: {results.len}"
+
+  # Output profile data if profiling was enabled
+  if profile:
+    let profileJson = resourceProfile.toJson()
+
+    # Add search parameters to profile
+    profileJson["searchParams"] = %*{
+      "direction": direction,
+      "filter": filter,
+      "width": width,
+      "levels": levels,
+      "sort": sort,
+      "parallel": parallel
+    }
+
+    # Add top results to profile
+    var topResults = newJArray()
+    for i in 0..<min(10, results.len):
+      topResults.add(%*{
+        "rank": i + 1,
+        "model": results[i].name,
+        "statistic": results[i].statistic
+      })
+    profileJson["topResults"] = topResults
+
+    if profileOutput != "":
+      writeFile(profileOutput, profileJson.pretty())
+      echo &"\nProfile written to: {profileOutput}"
+    else:
+      echo "\n--- Resource Profile (JSON) ---"
+      echo profileJson.pretty()
 
   return 0

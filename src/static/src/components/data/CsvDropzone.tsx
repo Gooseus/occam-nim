@@ -1,8 +1,9 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import Papa from 'papaparse';
 import { useAppStore } from '../../store/useAppStore';
 import { analyzeColumns, applyBinning } from '../../lib/binning';
+import { loadNimBinning, isNimBinningAvailable, nimAnalyzeColumns, nimApplyBinning } from '../../lib/nimBinning';
 
 export function CsvDropzone() {
   const setFileName = useAppStore((s) => s.setFileName);
@@ -11,6 +12,17 @@ export function CsvDropzone() {
   const setProcessedDataSpec = useAppStore((s) => s.setProcessedDataSpec);
   const setIsProcessing = useAppStore((s) => s.setIsProcessing);
   const setDataError = useAppStore((s) => s.setDataError);
+
+  // Try to load Nim binning module on mount
+  useEffect(() => {
+    loadNimBinning().then((success) => {
+      if (success) {
+        console.log('[CsvDropzone] Nim binning module available');
+      } else {
+        console.log('[CsvDropzone] Using TypeScript fallback');
+      }
+    });
+  }, []);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -41,15 +53,33 @@ export function CsvDropzone() {
               columns.map((col) => row[col] ?? '')
             );
 
-            const { analysis, suggestedConfigs } = analyzeColumns(columns, dataArray);
+            // Try Nim module first, fall back to TypeScript
+            let analysis, suggestedConfigs, dataSpec;
+
+            if (isNimBinningAvailable()) {
+              const nimResult = nimAnalyzeColumns(columns, dataArray);
+              if (nimResult) {
+                analysis = nimResult.analysis;
+                suggestedConfigs = nimResult.suggestedConfigs;
+                const nimDataSpec = nimApplyBinning(columns, dataArray, suggestedConfigs);
+                if (nimDataSpec) {
+                  dataSpec = nimDataSpec;
+                }
+              }
+            }
+
+            // Fallback to TypeScript if Nim failed or unavailable
+            if (!analysis || !dataSpec) {
+              const tsResult = analyzeColumns(columns, dataArray);
+              analysis = tsResult.analysis;
+              suggestedConfigs = tsResult.suggestedConfigs;
+              dataSpec = applyBinning(columns, dataArray, suggestedConfigs, analysis);
+            }
 
             setColumnAnalysis(analysis);
-            setBinConfigs(suggestedConfigs);
-
-            // Apply binning immediately and produce DataSpec
-            const dataSpec = applyBinning(columns, dataArray, suggestedConfigs, analysis);
-            dataSpec.name = file.name.replace(/\.[^/.]+$/, '');
-            setProcessedDataSpec(dataSpec);
+            setBinConfigs(suggestedConfigs!);
+            dataSpec!.name = file.name.replace(/\.[^/.]+$/, '');
+            setProcessedDataSpec(dataSpec!);
 
             setIsProcessing(false);
           } catch (err) {

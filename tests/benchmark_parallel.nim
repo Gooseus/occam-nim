@@ -5,7 +5,7 @@
 ##
 ## Run with: nim c -r -d:release --threads:on tests/benchmark_parallel.nim
 
-import std/[times, strutils, strformat, algorithm, cpuinfo]
+import std/[times, monotimes, strutils, strformat, algorithm, cpuinfo]
 import ../src/occam/core/types
 import ../src/occam/core/variable
 import ../src/occam/core/key
@@ -119,16 +119,16 @@ proc runBenchmark(numVars, cardinality, numModels: int): BenchResult =
     discard mgr.computeAIC(m)
   discard parallelComputeAIC(varList, inputTable, models[0..min(2, models.len-1)])
 
-  # Sequential timing
-  let seqStart = cpuTime()
+  # Sequential timing (wall clock)
+  let seqStart = getMonoTime()
   for model in models:
     discard mgr.computeAIC(model)
-  result.seqTimeMs = (cpuTime() - seqStart) * 1000.0
+  result.seqTimeMs = float64(inNanoseconds(getMonoTime() - seqStart)) / 1_000_000.0
 
-  # Parallel timing
-  let parStart = cpuTime()
+  # Parallel timing (wall clock)
+  let parStart = getMonoTime()
   discard parallelComputeAIC(varList, inputTable, models)
-  result.parTimeMs = (cpuTime() - parStart) * 1000.0
+  result.parTimeMs = float64(inNanoseconds(getMonoTime() - parStart)) / 1_000_000.0
 
   result.speedup = if result.parTimeMs > 0.1: result.seqTimeMs / result.parTimeMs else: 0.0
 

@@ -140,6 +140,44 @@ proc searchHandler(ctx: Context) {.async, gcsafe.} =
     resp jsonResponse(%*{"error": "search_error", "message": e.msg}, Http400)
 
 
+proc searchEstimateHandler(ctx: Context) {.async, gcsafe.} =
+  ## Estimate search time and complexity
+  when defined(logging):
+    debug "Search estimate requested"
+
+  try:
+    let body = ctx.request.body.parseJson()
+
+    var req: SearchEstimateRequest
+    req.data = body["data"].getStr()
+    req.direction = body.getOrDefault("direction").getStr("up")
+    req.filter = body.getOrDefault("filter").getStr("loopless")
+    req.width = body.getOrDefault("width").getInt(3)
+    req.levels = body.getOrDefault("levels").getInt(7)
+
+    when defined(logging):
+      info "Estimating search", direction = req.direction, filter = req.filter
+
+    var resp: SearchEstimateResponse
+    gcsafeCall:
+      resp = processSearchEstimate(req)
+
+    resp jsonResponse(%*{
+      "estimatedSeconds": resp.estimatedSeconds,
+      "estimatedSecondsLow": resp.estimatedSecondsLow,
+      "estimatedSecondsHigh": resp.estimatedSecondsHigh,
+      "level1Neighbors": resp.level1Neighbors,
+      "totalModelsEstimate": resp.totalModelsEstimate,
+      "complexity": resp.complexity,
+      "warnings": resp.warnings,
+      "recommendations": resp.recommendations
+    })
+  except Exception as e:
+    when defined(logging):
+      error "Search estimate failed", error = e.msg
+    resp jsonResponse(%*{"error": "estimate_error", "message": e.msg}, Http400)
+
+
 # CORS middleware for React dev server
 proc corsMiddleware(): HandlerAsync =
   result = proc(ctx: Context) {.async.} =
@@ -212,6 +250,7 @@ proc main() =
   app.addRoute("/api/data/info", dataInfoHandler, HttpPost)
   app.addRoute("/api/model/fit", fitModelHandler, HttpPost)
   app.addRoute("/api/search", searchHandler, HttpPost)
+  app.addRoute("/api/search/estimate", searchEstimateHandler, HttpPost)
 
   # WebSocket routes
   app.addRoute("/api/ws/search", wsSearchHandler, HttpGet)
@@ -221,11 +260,12 @@ proc main() =
   echo "Frontend: http://localhost:8080/ (src/static/dist)"
   echo ""
   echo "API Endpoints:"
-  echo "  GET  /api/health      - Health check"
-  echo "  POST /api/data/info   - Get dataset information"
-  echo "  POST /api/model/fit   - Fit a model"
-  echo "  POST /api/search      - Run model search"
-  echo "  WS   /api/ws/search   - Search with progress (WebSocket)"
+  echo "  GET  /api/health          - Health check"
+  echo "  POST /api/data/info       - Get dataset information"
+  echo "  POST /api/model/fit       - Fit a model"
+  echo "  POST /api/search          - Run model search"
+  echo "  POST /api/search/estimate - Estimate search time"
+  echo "  WS   /api/ws/search       - Search with progress (WebSocket)"
 
   app.run()
 

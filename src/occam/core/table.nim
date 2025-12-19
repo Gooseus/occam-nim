@@ -13,6 +13,11 @@ import types
 import variable
 import key
 
+# Compile-time flag for projection profiling
+when defined(profileProjections):
+  import std/[monotimes, times]
+  import profile
+
 type
   Tuple* = object
     ## A single entry in a contingency table
@@ -149,10 +154,8 @@ proc sumInto*(t: var ContingencyTable) =
   t.tuples.setLen(writeIdx + 1)
 
 
-func project*(t: ContingencyTable; varList: VariableList; varIndices: openArray[VariableIndex]): ContingencyTable =
-  ## Project table onto subset of variables (marginalize out others)
-  ## Returns new table with combined values for matching projected keys
-
+func projectImpl(t: ContingencyTable; varList: VariableList; varIndices: openArray[VariableIndex]): ContingencyTable =
+  ## Internal projection implementation
   # Build mask for projection
   let mask = varList.buildMask(varIndices)
 
@@ -168,6 +171,22 @@ func project*(t: ContingencyTable; varList: VariableList; varIndices: openArray[
   projected.sumInto()
 
   projected
+
+
+when defined(profileProjections):
+  proc project*(t: ContingencyTable; varList: VariableList; varIndices: openArray[VariableIndex]): ContingencyTable =
+    ## Project table onto subset of variables (marginalize out others)
+    ## Returns new table with combined values for matching projected keys
+    ## With -d:profileProjections: tracks call count and timing
+    let startTime = getMonoTime()
+    result = projectImpl(t, varList, varIndices)
+    addProjectionStat(inNanoseconds(getMonoTime() - startTime))
+
+else:
+  func project*(t: ContingencyTable; varList: VariableList; varIndices: openArray[VariableIndex]): ContingencyTable =
+    ## Project table onto subset of variables (marginalize out others)
+    ## Returns new table with combined values for matching projected keys
+    projectImpl(t, varList, varIndices)
 
 
 iterator items*(t: ContingencyTable): Tuple =

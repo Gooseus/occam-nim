@@ -28,8 +28,28 @@ switch("threads", "on")
 task test, "Run tests":
   exec "nim c -r --threads:on tests/test_all.nim"
 
-task benchmark, "Run benchmarks with release mode":
+task benchmark, "Run core benchmarks with release mode":
+  exec "nim c -d:release -r --threads:on tests/benchmark_core_ops.nim"
   exec "nim c -d:release -r --threads:on tests/benchmark_ipf_vs_bp.nim"
+
+task benchmark_regression, "Run regression tests to detect performance degradation":
+  exec "nim c -d:release -r --threads:on tests/benchmark_regression.nim"
+
+task benchmark_scalability, "Run scalability analysis (varies parameters systematically)":
+  exec "nim c -d:release -r --threads:on tests/benchmark_scalability.nim"
+
+task benchmark_ipf, "Profile IPF convergence behavior":
+  exec "nim c -d:release -r --threads:on tests/benchmark_ipf_convergence.nim"
+
+task benchmark_parallel, "Run parallel vs sequential benchmarks":
+  exec "nim c -d:release -r --threads:on tests/benchmark_parallel.nim"
+
+task benchmark_all, "Run all benchmark suites":
+  exec "nimble benchmark"
+  exec "nimble benchmark_regression"
+  exec "nimble benchmark_scalability"
+  exec "nimble benchmark_ipf"
+  exec "nimble benchmark_parallel"
 
 # Convenience tasks for building other packages
 

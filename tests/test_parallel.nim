@@ -6,7 +6,7 @@
 ## 2. Thread safety
 ## 3. Actual parallelism (measurable speedup)
 
-import std/[unittest, times, sequtils, algorithm, math, os]
+import std/[unittest, times, monotimes, sequtils, algorithm, math, os]
 import ../src/occam/core/types
 import ../src/occam/core/variable
 import ../src/occam/core/key
@@ -226,17 +226,17 @@ suite "Parallel Evaluation - Performance":
 
     var mgr = newVBManager(varList, inputTable)
 
-    let start = cpuTime()
+    let start = getMonoTime()
     for _ in 1..3:  # Multiple iterations for stability
       for model in models:
         discard mgr.computeAIC(model)
-    let elapsed = cpuTime() - start
+    let elapsedMs = float64(inNanoseconds(getMonoTime() - start)) / 1_000_000.0
 
     echo "  Sequential: ", models.len * 3, " evaluations in ",
-         (elapsed * 1000).int, "ms"
-    echo "  Per evaluation: ", (elapsed * 1000 / float64(models.len * 3)), "ms"
+         elapsedMs.int, "ms"
+    echo "  Per evaluation: ", (elapsedMs / float64(models.len * 3)), "ms"
 
-    check elapsed > 0
+    check elapsedMs > 0
 
   test "parallel vs sequential timing comparison":
     ## Compare parallel and sequential performance
@@ -250,28 +250,28 @@ suite "Parallel Evaluation - Performance":
       for m in models:
         manyModels.add(m)
 
-    # Sequential timing
+    # Sequential timing (wall clock)
     var mgr = newVBManager(varList, inputTable)
-    let seqStart = cpuTime()
+    let seqStart = getMonoTime()
     for model in manyModels:
       discard mgr.computeAIC(model)
-    let seqTime = cpuTime() - seqStart
+    let seqTimeMs = float64(inNanoseconds(getMonoTime() - seqStart)) / 1_000_000.0
 
-    # Parallel timing
-    let parStart = cpuTime()
+    # Parallel timing (wall clock)
+    let parStart = getMonoTime()
     discard parallelComputeAIC(varList, inputTable, manyModels)
-    let parTime = cpuTime() - parStart
+    let parTimeMs = float64(inNanoseconds(getMonoTime() - parStart)) / 1_000_000.0
 
-    let speedup = if parTime > 0.001: seqTime / parTime else: 1.0
+    let speedup = if parTimeMs > 0.1: seqTimeMs / parTimeMs else: 1.0
 
     echo "  Models evaluated: ", manyModels.len
-    echo "  Sequential: ", (seqTime * 1000).int, "ms"
-    echo "  Parallel: ", (parTime * 1000).int, "ms"
+    echo "  Sequential: ", seqTimeMs.int, "ms"
+    echo "  Parallel: ", parTimeMs.int, "ms"
     echo "  Speedup: ", speedup, "x"
 
     # Just verify completion and reasonable results
-    check seqTime > 0
-    check parTime > 0
+    check seqTimeMs > 0
+    check parTimeMs > 0
 
 
 suite "Parallel API":

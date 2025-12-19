@@ -13,6 +13,7 @@ import ../core/model
 import ../core/junction_tree
 import ../core/results
 import ../core/errors
+import ../core/profile
 import ../math/entropy
 import ../math/statistics as mathstats
 import ../math/ipf
@@ -33,6 +34,7 @@ type
     topRef: Model
     bottomRef: Model
     searchDirection*: Direction
+    profiler*: ProfileAccumulator  ## Optional profiler for performance tracking
 
 
 # ============ VBManager ============
@@ -66,13 +68,17 @@ proc createBottomRefModel(varList: VariableList): Model =
 
 
 proc initVBManager*(varList: VariableList; inputData: coretable.ContingencyTable;
-                    validate = true): VBManager {.raises: [ValidationError].} =
+                    validate = true;
+                    profileConfig = initProfileConfig(pgNone)): VBManager {.raises: [ValidationError].} =
   ## Create a new VB Manager with variable list and input data
   ##
   ## If validate is true (default), raises ValidationError on invalid inputs:
   ##   - Empty variable list
   ##   - Empty input data
   ##   - Zero sample size
+  ##
+  ## If profileConfig has granularity != pgNone, profiling is enabled and
+  ## the manager will track timing for various operations.
 
   if validate:
     if varList.len == 0:
@@ -90,6 +96,12 @@ proc initVBManager*(varList: VariableList; inputData: coretable.ContingencyTable
   result.modelCache = initModelCache()
   result.searchDirection = Direction.Ascending
 
+  # Initialize profiler if profiling enabled
+  if profileConfig.granularity != pgNone:
+    result.profiler = initProfileAccumulator(profileConfig)
+  else:
+    result.profiler = nil
+
   # Create normalized copy of data
   result.normalizedData = inputData
   result.normalizedData.normalize()
@@ -100,9 +112,10 @@ proc initVBManager*(varList: VariableList; inputData: coretable.ContingencyTable
 
 # Alias with simpler name
 proc initManager*(varList: VariableList; inputData: coretable.ContingencyTable;
-                  validate = true): VBManager {.raises: [ValidationError].} =
+                  validate = true;
+                  profileConfig = initProfileConfig(pgNone)): VBManager {.raises: [ValidationError].} =
   ## Alias for `initVBManager` with a simpler name.
-  initVBManager(varList, inputData, validate)
+  initVBManager(varList, inputData, validate, profileConfig)
 
 # Deprecated alias
 proc newVBManager*(varList: VariableList; inputData: coretable.ContingencyTable;
@@ -682,7 +695,121 @@ proc searchOneLevel*(mgr: var VBManager; model: Model): seq[Model] =
     mgr.searchOneLevelDown(model)
 
 
+# ============ Cache Statistics ============
+
+proc getRelationCacheStats*(mgr: VBManager): CacheStats =
+  ## Get statistics for the relation cache
+  mgr.relCache.stats
+
+
+proc getModelCacheStats*(mgr: VBManager): CacheStats =
+  ## Get statistics for the model cache
+  mgr.modelCache.stats
+
+
+proc getCombinedCacheStats*(mgr: VBManager): CacheStats =
+  ## Get combined statistics for both caches
+  let rel = mgr.relCache.stats
+  let mdl = mgr.modelCache.stats
+  CacheStats(
+    hits: rel.hits + mdl.hits,
+    misses: rel.misses + mdl.misses,
+    entries: rel.entries + mdl.entries
+  )
+
+
+proc getCacheHitRate*(mgr: VBManager): float64 =
+  ## Get combined hit rate for both caches (0.0 to 1.0)
+  let combined = mgr.getCombinedCacheStats()
+  combined.hitRate()
+
+
+proc resetCacheStats*(mgr: var VBManager) =
+  ## Reset cache statistics counters without clearing caches
+  mgr.relCache.resetStats()
+  mgr.modelCache.resetStats()
+
+
+proc clearCaches*(mgr: var VBManager) =
+  ## Clear all caches and reset statistics
+  mgr.relCache.clear()
+  mgr.modelCache.clear()
+
+
+# ============ Profiling ============
+
+proc isProfilingEnabled*(mgr: VBManager): bool =
+  ## Check if profiling is enabled for this manager
+  mgr.profiler != nil and mgr.profiler.config.granularity != pgNone
+
+proc enableProfiling*(mgr: var VBManager; config = initProfileConfig(pgSummary)) =
+  ## Enable profiling on an existing manager
+  ## Creates a new ProfileAccumulator with the given config
+  mgr.profiler = initProfileAccumulator(config)
+
+proc disableProfiling*(mgr: var VBManager) =
+  ## Disable profiling on an existing manager
+  mgr.profiler = nil
+
+proc getResourceProfile*(mgr: VBManager): ResourceProfile =
+  ## Get the current resource profile from the manager
+  ## Returns an empty profile if profiling is not enabled
+  if mgr.profiler != nil:
+    result = mgr.profiler.toResourceProfile()
+    # Add cache stats from manager
+    let cacheStats = mgr.getCombinedCacheStats()
+    result.cacheStats = ProfileCacheStats(
+      hits: cacheStats.hits,
+      misses: cacheStats.misses,
+      entries: cacheStats.entries
+    )
+  else:
+    result = ResourceProfile()
+
+proc recordOperation*(mgr: var VBManager; name: string; durationNs: int64) =
+  ## Record an operation timing if profiling is enabled
+  ## Profiling errors are silently ignored to not affect main code path
+  if mgr.profiler != nil:
+    try:
+      mgr.profiler.recordOp(name, durationNs)
+    except KeyError:
+      discard  # Profiling should not affect main code path
+
+proc recordFitOperation*(mgr: var VBManager; fitInfo: mgrfitting.FitInfo) =
+  ## Record a fit operation with detailed timing from FitInfo
+  ## Automatically categorizes by fit type and records breakdown
+  ## Profiling errors are silently ignored to not affect main code path
+  if mgr.profiler != nil:
+    try:
+      # Record overall fit time
+      mgr.profiler.recordOp("fit_total", fitInfo.fitTimeNs)
+
+      # Record by fit type
+      case fitInfo.fitType
+      of mgrfitting.ftSaturated:
+        mgr.profiler.recordOp("fit_saturated", fitInfo.fitTimeNs)
+      of mgrfitting.ftIndependence:
+        mgr.profiler.recordOp("fit_independence", fitInfo.fitTimeNs)
+      of mgrfitting.ftLoopless:
+        mgr.profiler.recordOp("fit_loopless", fitInfo.fitTimeNs)
+        if fitInfo.bpCollectNs > 0:
+          mgr.profiler.recordOp("bp_collect", fitInfo.bpCollectNs)
+        if fitInfo.bpDistributeNs > 0:
+          mgr.profiler.recordOp("bp_distribute", fitInfo.bpDistributeNs)
+      of mgrfitting.ftIPF:
+        mgr.profiler.recordOp("fit_ipf", fitInfo.fitTimeNs)
+        if fitInfo.ipfTotalNs > 0:
+          mgr.profiler.recordOp("ipf_total", fitInfo.ipfTotalNs)
+        # Record iteration count for IPF
+        mgr.profiler.recordOp("ipf_iterations", fitInfo.iterations.int64)
+    except KeyError:
+      discard  # Profiling should not affect main code path
+
+
 # Re-export analysis functions for backwards compatibility
 import analysis
 export analysis
+export CacheStats
+export ProfileConfig, ProfileGranularity, ProfileAccumulator, ResourceProfile
+export initProfileConfig, initProfileAccumulator, toResourceProfile, toJson
 

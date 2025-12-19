@@ -54,10 +54,11 @@ proc wsSearchHandler*(ctx: Context) {.async.} =
              ", levels: ", clientMsg.payload.levels
 
         # Create send function that sends via WebSocket
-        # Note: We capture ws and use asyncCheck to fire-and-forget the send
+        # Note: We use waitFor to ensure messages are sent immediately
+        # rather than queued (since search runs synchronously)
         proc sendMsg(msg: string) {.gcsafe.} =
           {.cast(gcsafe).}:
-            asyncCheck ws.send(msg)
+            waitFor ws.send(msg)
 
         let callback = makeWSProgressCallback(clientMsg.requestId, sendMsg)
         let progressConfig = initProgressConfig(callback = callback)

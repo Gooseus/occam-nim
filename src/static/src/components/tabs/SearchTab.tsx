@@ -3,6 +3,7 @@ import { useAppStore } from '../../store/useAppStore';
 import { SearchParams as SearchParamsForm } from '../SearchParams';
 import { ProgressBar } from '../ProgressBar';
 import { ResultsTable } from '../ResultsTable';
+import { SearchEstimate } from '../SearchEstimate';
 
 export function SearchTab() {
   const processedDataSpec = useAppStore((s) => s.processedDataSpec);
@@ -58,20 +59,51 @@ export function SearchTab() {
       if (msg.requestId !== requestIdRef.current) return;
 
       if (msg.type === 'progress') {
-        setSearchProgress({
-          currentLevel: msg.data?.currentLevel || 0,
-          totalLevels: msg.data?.totalLevels || searchParams.levels,
-          modelsEvaluated: msg.data?.modelsEvaluated || msg.data?.totalModelsEvaluated || 0,
-          bestModelName: msg.data?.bestModelName,
-          bestStatistic: msg.data?.bestStatistic,
-          statisticName: msg.data?.statisticName,
-        });
+        const event = msg.event as string;
+        const data = msg.data || {};
+
+        if (event === 'search_started') {
+          setSearchProgress({
+            currentLevel: 0,
+            totalLevels: data.totalLevels || searchParams.levels,
+            modelsEvaluated: 0,
+            bestModelName: undefined,
+            bestStatistic: undefined,
+            statisticName: data.statisticName,
+          });
+        } else if (event === 'level_complete') {
+          setSearchProgress({
+            currentLevel: data.currentLevel || 0,
+            totalLevels: data.totalLevels || searchParams.levels,
+            modelsEvaluated: data.modelsEvaluated || data.totalModelsEvaluated || 0,
+            bestModelName: data.bestModelName,
+            bestStatistic: data.bestStatistic,
+            statisticName: data.statisticName,
+          });
+        } else if (event === 'search_complete') {
+          // For search_complete, set currentLevel = totalLevels to show completion
+          // Use getState() to access previous progress since setSearchProgress doesn't support callbacks
+          const prev = useAppStore.getState().searchProgress;
+          setSearchProgress({
+            currentLevel: prev?.totalLevels || data.totalLevels || searchParams.levels,
+            totalLevels: prev?.totalLevels || data.totalLevels || searchParams.levels,
+            modelsEvaluated: data.totalModelsEvaluated || prev?.modelsEvaluated || 0,
+            bestModelName: data.bestModelName || prev?.bestModelName,
+            bestStatistic: data.bestStatistic ?? prev?.bestStatistic,
+            statisticName: data.statisticName || prev?.statisticName,
+          });
+        }
       } else if (msg.type === 'result') {
-        setSearchResults(msg.results || [], msg.totalEvaluated || 0);
+        // Results are in msg.data.results, not msg.results
+        setSearchResults(msg.data?.results || [], msg.data?.totalEvaluated || 0);
         setSearchStatus('complete');
         ws.close();
       } else if (msg.type === 'error') {
-        setSearchError({ code: msg.code || 'ERROR', message: msg.message || 'Unknown error' });
+        // Error details are in msg.error, not msg directly
+        setSearchError({
+          code: msg.error?.code || 'ERROR',
+          message: msg.error?.message || 'Unknown error'
+        });
         setSearchStatus('error');
         ws.close();
       }
@@ -121,6 +153,16 @@ export function SearchTab() {
         onChange={setSearchParams}
         disabled={isSearching}
       />
+
+      {searchStatus === 'idle' && (
+        <SearchEstimate
+          data={processedDataSpec}
+          direction={searchParams.direction}
+          filter={searchParams.filter}
+          width={searchParams.width}
+          levels={searchParams.levels}
+        />
+      )}
 
       <div style={styles.actions}>
         <button

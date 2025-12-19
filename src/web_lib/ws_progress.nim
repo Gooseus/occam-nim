@@ -3,6 +3,7 @@
 ## Factory for creating progress callbacks that convert ProgressEvents
 ## to JSON messages and send them via WebSocket.
 
+import std/strformat
 import ../occam/core/progress
 import ws_messages
 
@@ -45,8 +46,23 @@ proc makeWSProgressCallback*(requestId: string; sendFn: WSSendFn): ProgressCallb
         sendFn(msg.toJson())
 
       of pkSearchLevel:
-        echo "[Progress] Level ", event.currentLevel, "/", event.totalLevels,
-             " - ", event.totalModelsEvaluated, " models, best: ", event.bestModelName
+        # Calculate timing in milliseconds
+        let levelTimeMs = float64(event.levelTimeNs) / 1_000_000.0
+        let elapsedMs = float64(event.elapsedNs) / 1_000_000.0
+        let avgModelTimeMs = event.avgModelTimeNs / 1_000_000.0
+
+        # Show loop breakdown and timing in console log
+        let levelTotal = event.looplessModels + event.loopModels
+        let loopInfo = if event.loopModels > 0:
+          $event.looplessModels & " loopless + " & $event.loopModels & " loops (IPF!)"
+        elif event.looplessModels > 0:
+          $event.looplessModels & " loopless"
+        else:
+          "0 models"
+
+        echo &"[Progress] Level {event.currentLevel}/{event.totalLevels} - {loopInfo} = {levelTotal} models, {levelTimeMs:.1f}ms (total: {elapsedMs:.1f}ms, avg: {avgModelTimeMs:.2f}ms/model)"
+        echo &"           Best: {event.bestModelName}"
+
         let msg = WSProgressMessage(
           msgType: "progress",
           requestId: requestId,
@@ -55,16 +71,24 @@ proc makeWSProgressCallback*(requestId: string; sendFn: WSSendFn): ProgressCallb
             currentLevel: event.currentLevel,
             totalLevels: event.totalLevels,
             modelsEvaluated: event.totalModelsEvaluated,
+            looplessModels: event.looplessModels,
+            loopModels: event.loopModels,
             bestModelName: event.bestModelName,
             bestStatistic: event.bestStatistic,
             statisticName: event.statisticName,
-            timestamp: event.timestamp
+            timestamp: event.timestamp,
+            levelTimeMs: levelTimeMs,
+            elapsedMs: elapsedMs,
+            avgModelTimeMs: avgModelTimeMs
           )
         )
         sendFn(msg.toJson())
 
       of pkSearchComplete:
-        echo "[Progress] Search complete - ", event.totalModelsEvaluated, " models, best: ", event.bestModelName
+        let elapsedMs = float64(event.elapsedNs) / 1_000_000.0
+        let avgModelTimeMs = event.avgModelTimeNs / 1_000_000.0
+        echo &"[Progress] Search complete - {event.totalModelsEvaluated} models in {elapsedMs:.1f}ms ({avgModelTimeMs:.2f}ms/model)"
+        echo &"           Best: {event.bestModelName}"
         let msg = WSProgressMessage(
           msgType: "progress",
           requestId: requestId,
@@ -74,11 +98,32 @@ proc makeWSProgressCallback*(requestId: string; sendFn: WSSendFn): ProgressCallb
             bestModelName: event.bestModelName,
             bestStatistic: event.bestStatistic,
             statisticName: event.statisticName,
-            timestamp: event.timestamp
+            timestamp: event.timestamp,
+            elapsedMs: elapsedMs,
+            avgModelTimeMs: avgModelTimeMs
           )
         )
         sendFn(msg.toJson())
 
-      of pkModelEvaluated, pkIPFIteration:
-        # Skip fine-grained events - too noisy for WebSocket
+      of pkModelEvaluated:
+        # Skip fine-grained model events - too noisy for WebSocket
+        discard
+
+      of pkIPFIteration:
+        # IPF iteration progress - show in console and send to client
+        echo &"[IPF] iter {event.ipfIteration}/{event.ipfMaxIterations}: error={event.ipfError:.2e}, {event.ipfStateCount} states"
+        let msg = WSProgressMessage(
+          msgType: "progress",
+          requestId: requestId,
+          event: "ipf_progress",
+          data: WSProgressData(
+            ipfIteration: event.ipfIteration,
+            ipfMaxIterations: event.ipfMaxIterations,
+            ipfError: event.ipfError,
+            ipfStateCount: event.ipfStateCount,
+            ipfRelationCount: event.ipfRelationCount,
+            timestamp: event.timestamp
+          )
+        )
+        sendFn(msg.toJson())
         discard

@@ -25,10 +25,20 @@ proc makeCLIProgressCallback*(verbose = true): ProgressCallback =
           echo ""
 
       of pkSearchLevel:
-        let msg = &"  Level {event.currentLevel}/{event.totalLevels}: " &
-                  &"Evaluated {event.totalModelsEvaluated} models"
+        # Show loop breakdown - counts of EVALUATED models at this level
+        # This is critical for understanding why some searches are slow!
+        let levelTotal = event.looplessModels + event.loopModels
+        let loopInfo = if event.loopModels > 0:
+          &"{event.looplessModels} loopless + {event.loopModels} loops (IPF!)"
+        elif event.looplessModels > 0:
+          &"{event.looplessModels} loopless"
+        else:
+          "0 models"
+
+        let msg = &"  Level {event.currentLevel}/{event.totalLevels}: {loopInfo} = {levelTotal} at level ({event.totalModelsEvaluated} total)"
         if event.bestModelName != "":
-          echo &"{msg}, best {event.statisticName}={event.bestStatistic:.4f} ({event.bestModelName})"
+          echo &"{msg}"
+          echo &"    Best {event.statisticName}={event.bestStatistic:.4f} ({event.bestModelName})"
         else:
           echo msg
 
@@ -41,7 +51,8 @@ proc makeCLIProgressCallback*(verbose = true): ProgressCallback =
       of pkIPFIteration:
         if verbose:
           let status = if event.ipfConverged: "converged" else: "iterating"
-          echo &"    IPF iter {event.ipfIteration}/{event.ipfMaxIterations}: error={event.ipfError:.2e} ({status})"
+          let modelInfo = if event.ipfModelName.len > 0: &" [{event.ipfModelName}]" else: ""
+          echo &"    IPF{modelInfo} iter {event.ipfIteration}/{event.ipfMaxIterations}: error={event.ipfError:.2e} ({status})"
 
       of pkSearchComplete:
         echo ""
