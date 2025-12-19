@@ -1,9 +1,10 @@
 import React from 'react'
-import type { Progress, SearchStatus } from '../hooks/useSearch'
+import type { SearchProgress } from '../types/dataSpec'
+import type { SearchStatus } from '../store/useAppStore'
 
 interface ProgressBarProps {
   status: SearchStatus
-  progress: Progress | null
+  progress: SearchProgress | null
 }
 
 export function ProgressBar({ status, progress }: ProgressBarProps) {
@@ -57,9 +58,9 @@ export function ProgressBar({ status, progress }: ProgressBarProps) {
                 <span style={styles.detailValue}>{progress.bestModelName}</span>
               </div>
               <div style={styles.detailItem}>
-                <span style={styles.detailLabel}>{progress.statisticName}:</span>
+                <span style={styles.detailLabel}>{progress.statisticName || 'Statistic'}:</span>
                 <span style={styles.detailValue}>
-                  {progress.bestStatistic.toFixed(4)}
+                  {progress.bestStatistic?.toFixed(4) || '-'}
                 </span>
               </div>
             </>
