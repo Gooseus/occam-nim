@@ -58,13 +58,15 @@ proc info*(input: string;
 
 proc convert*(input: string;
               output = "";
-              inferVals = true): int =
+              inferVals = true;
+              includeAll = false): int =
   ## Convert OCCAM .in format to JSON
   ##
   ## Arguments:
   ##   input: Path to OCCAM .in file
   ##   output: Output JSON file (default: stdout)
   ##   inferVals: Infer value labels from data
+  ##   includeAll: Include all variables (even type=0 excluded ones)
 
   if input == "":
     echo "Error: Input file required"
@@ -77,15 +79,20 @@ proc convert*(input: string;
   var parsed = parseOccamInFile(input)
 
   if inferVals:
-    parsed = inferValues(parsed)
+    parsed = inferValues(parsed, excludeType0 = not includeAll)
 
-  let json = toJson(parsed)
+  let json = toJson(parsed, excludeType0 = not includeAll)
 
   if output == "":
     echo json
   else:
     writeFile(output, json)
-    echo &"Converted {input} -> {output}"
+    let activeCount = parsed.activeVariableCount
+    let totalCount = parsed.variables.len
+    if includeAll:
+      echo &"Converted {input} -> {output} ({totalCount} variables)"
+    else:
+      echo &"Converted {input} -> {output} ({activeCount} active variables, {totalCount - activeCount} excluded)"
 
   return 0
 

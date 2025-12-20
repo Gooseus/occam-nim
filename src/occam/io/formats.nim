@@ -19,12 +19,19 @@ type
     searchWidth*: int
     searchLevels*: int
 
+  VariableType* = enum
+    ## Variable type in legacy OCCAM .in format
+    vtExcluded = 0  # Type 0: Excluded from analysis
+    vtIV = 1        # Type 1: Independent variable (active)
+    vtDV = 2        # Type 2: Dependent variable
+
   VariableSpec* = object
     ## Variable specification for I/O
     name*: string
     abbrev*: string
     cardinality*: int
     isDependent*: bool
+    varType*: VariableType  # Original type from .in file (default: vtIV)
     values*: seq[string]
 
   CsvAnalysis* = object
@@ -71,13 +78,18 @@ proc parseOccamIn*(content: string): OccamInFile {.raises: [ValueError].} =
 
     of "nominal":
       # Parse variable definition: name,cardinality,type,abbrev
+      # Type: 0=excluded, 1=IV, 2=DV
       let parts = trimmed.split(',')
       if parts.len >= 4:
         var spec: VariableSpec
         spec.name = parts[0].strip
         spec.cardinality = parseInt(parts[1].strip)
-        let varType = parseInt(parts[2].strip)
-        spec.isDependent = (varType == 2)
+        let varTypeInt = parseInt(parts[2].strip)
+        spec.varType = case varTypeInt
+          of 0: vtExcluded
+          of 2: vtDV
+          else: vtIV
+        spec.isDependent = (spec.varType == vtDV)
         spec.abbrev = parts[3].strip
         result.variables.add(spec)
 
@@ -114,8 +126,26 @@ proc parseOccamInFile*(path: string): OccamInFile {.raises: [IOError, ValueError
   parseOccamIn(content)
 
 
-proc inferValues*(inFile: OccamInFile): OccamInFile =
+proc activeVariableCount*(inFile: OccamInFile): int =
+  ## Count variables that are not excluded (type != 0)
+  for v in inFile.variables:
+    if v.varType != vtExcluded:
+      result += 1
+
+
+proc activeVariables*(inFile: OccamInFile): seq[VariableSpec] =
+  ## Get only active (non-excluded) variables
+  for v in inFile.variables:
+    if v.varType != vtExcluded:
+      result.add(v)
+
+
+proc inferValues*(inFile: OccamInFile; excludeType0: bool = true): OccamInFile =
   ## Infer value labels from data
+  ##
+  ## Arguments:
+  ##   inFile: Parsed OCCAM .in file
+  ##   excludeType0: If true (default), only infer values for active variables
   result = inFile
 
   # Initialize empty value sets for each variable
@@ -131,6 +161,10 @@ proc inferValues*(inFile: OccamInFile): OccamInFile =
 
   # Sort and assign values
   for i in 0..<result.variables.len:
+    # Skip excluded variables if excludeType0 is set
+    if excludeType0 and result.variables[i].varType == vtExcluded:
+      continue
+
     var vals: seq[string]
     for key in valueSets[i].keys:
       vals.add(key)
@@ -199,15 +233,28 @@ proc analyzeCsvFile*(path: string; hasHeader: bool = true; delimiter: char = ','
 
 # ============ JSON Output ============
 
-proc toJson*(inFile: OccamInFile): string =
+proc toJson*(inFile: OccamInFile; excludeType0: bool = true): string =
   ## Convert to JSON format for OCCAM-Nim
+  ##
+  ## Arguments:
+  ##   inFile: Parsed OCCAM .in file
+  ##   excludeType0: If true (default), exclude variables with varType=vtExcluded (type=0)
+  ##                 This matches legacy OCCAM behavior where type=0 vars are not used in analysis
   var lines: seq[string]
   lines.add("{")
   lines.add("  \"name\": \"Converted from OCCAM .in\",")
 
-  # Variables
-  lines.add("  \"variables\": [")
+  # Build list of active variable indices (for filtering data columns)
+  var activeIndices: seq[int]
+  var activeVars: seq[VariableSpec]
   for i, v in inFile.variables:
+    if not excludeType0 or v.varType != vtExcluded:
+      activeIndices.add(i)
+      activeVars.add(v)
+
+  # Variables - only include active ones
+  lines.add("  \"variables\": [")
+  for i, v in activeVars:
     var varLines: seq[string]
     varLines.add("    {")
     varLines.add("      \"name\": \"" & v.name & "\",")
@@ -225,17 +272,20 @@ proc toJson*(inFile: OccamInFile): string =
         valStrs.add("\"" & $j & "\"")
     varLines.add("      \"values\": [" & valStrs.join(", ") & "]")
 
-    varLines.add("    }" & (if i < inFile.variables.len - 1: "," else: ""))
+    varLines.add("    }" & (if i < activeVars.len - 1: "," else: ""))
     lines.add(varLines.join("\n"))
   lines.add("  ],")
 
-  # Data
+  # Data - only include columns for active variables
   lines.add("  \"data\": [")
   var dataLines: seq[string]
   for row in inFile.data:
     var rowStrs: seq[string]
-    for val in row:
-      rowStrs.add("\"" & val & "\"")
+    for colIdx in activeIndices:
+      if colIdx < row.len:
+        rowStrs.add("\"" & row[colIdx] & "\"")
+      else:
+        rowStrs.add("\"\"")
     dataLines.add("    [" & rowStrs.join(", ") & "]")
   lines.add(dataLines.join(",\n"))
   lines.add("  ],")
