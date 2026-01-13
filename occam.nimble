@@ -19,6 +19,7 @@ requires "nim >= 2.0.0"
 requires "distributions >= 0.1.0"
 requires "jsony >= 1.1.0"
 requires "malebolgia >= 0.1.0"
+requires "primes >= 0.1.0"
 
 # Build switches - enable threads for parallelization
 switch("threads", "on")

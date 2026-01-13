@@ -15,10 +15,10 @@ binDir        = "../../bin"
 # Dependencies
 requires "nim >= 2.0.0"
 requires "cligen >= 1.7.0"
-requires "primes >= 0.1.0"
 requires "distributions >= 0.1.0"
 requires "jsony >= 1.1.0"
 requires "malebolgia >= 0.1.0"
+requires "primes >= 0.1.0"
 
 # Build switches
 switch("threads", "on")
