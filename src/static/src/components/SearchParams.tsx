@@ -1,19 +1,19 @@
-import React from 'react'
-import type { SearchParams as SearchParamsType } from '../hooks/useSearch'
+import React from 'react';
+import type { SearchParams as SearchParamsType } from '../types/dataSpec';
 
 interface SearchParamsProps {
-  params: Omit<SearchParamsType, 'data'>
-  onChange: (params: Omit<SearchParamsType, 'data'>) => void
-  disabled?: boolean
+  params: SearchParamsType;
+  onChange: (params: SearchParamsType) => void;
+  disabled?: boolean;
 }
 
 export function SearchParams({ params, onChange, disabled }: SearchParamsProps) {
-  const updateParam = <K extends keyof Omit<SearchParamsType, 'data'>>(
+  const updateParam = <K extends keyof SearchParamsType>(
     key: K,
-    value: Omit<SearchParamsType, 'data'>[K]
+    value: SearchParamsType[K]
   ) => {
-    onChange({ ...params, [key]: value })
-  }
+    onChange({ ...params, [key]: value });
+  };
 
   return (
     <div style={styles.container}>

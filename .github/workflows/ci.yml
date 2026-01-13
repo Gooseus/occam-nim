@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        nim-version: ['stable', '2.0.x']
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jiro4989/setup-nim-action@v2
+        with:
+          nim-version: ${{ matrix.nim-version }}
+
+      - name: Install dependencies
+        run: nimble install -d -y
+
+      - name: Run tests
+        run: nimble test
+
+      - name: Build CLI
+        run: |
+          cd packages/occam_cli && nimble install -d -y && cd ../..
+          nimble cli
+
+      - name: Build Web
+        run: |
+          cd packages/occam_web && nimble install -d -y && cd ../..
+          nimble web
+
+      - name: Build MCP
+        run: |
+          cd packages/occam_mcp && nimble install -d -y && cd ../..
+          nimble mcp

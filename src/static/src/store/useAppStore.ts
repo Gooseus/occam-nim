@@ -1,10 +1,18 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { BinConfig, ColumnAnalysis } from '../types/binning';
-import type { DataSpec, SearchParams, SearchResult, SearchProgress, FitResult } from '../types/dataSpec';
+import type {
+  DataSpec,
+  SearchParams,
+  SearchResult,
+  SearchProgress,
+  SearchStatus,
+  SearchError,
+  FitResult,
+} from '../types/dataSpec';
 
 export type TabId = 'data' | 'search' | 'fit' | 'results';
-export type SearchStatus = 'idle' | 'connecting' | 'searching' | 'complete' | 'error';
+export type { SearchStatus } from '../types/dataSpec';
 
 interface AppState {
   // Tab navigation
@@ -34,14 +42,14 @@ interface AppState {
   searchProgress: SearchProgress | null;
   searchResults: SearchResult[];
   searchTotalEvaluated: number;
-  searchError: { code: string; message: string } | null;
+  searchError: SearchError | null;
   searchParams: SearchParams;
 
   // Search actions
   setSearchStatus: (status: SearchStatus) => void;
   setSearchProgress: (progress: SearchProgress | null) => void;
   setSearchResults: (results: SearchResult[], totalEvaluated: number) => void;
-  setSearchError: (error: { code: string; message: string } | null) => void;
+  setSearchError: (error: SearchError | null) => void;
   setSearchParams: (params: Partial<SearchParams>) => void;
   resetSearch: () => void;
 

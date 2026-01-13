@@ -1,4 +1,11 @@
-// Types mirroring Nim DataSpec/VariableSpec from src/occam/io/parser.nim
+/**
+ * Types mirroring Nim DataSpec/VariableSpec from src/occam/io/parser.nim
+ * This is the single source of truth for all data and search types.
+ */
+
+// =============================================================================
+// Data Types
+// =============================================================================
 
 export interface VariableSpec {
   name: string;
@@ -22,7 +29,11 @@ export interface DataInfo {
   variables: VariableSpec[];
 }
 
-// Search types
+// =============================================================================
+// Search Types
+// =============================================================================
+
+/** Search parameter configuration */
 export interface SearchParams {
   direction: 'up' | 'down';
   filter: 'loopless' | 'full' | 'disjoint';
@@ -31,6 +42,12 @@ export interface SearchParams {
   sortBy: 'bic' | 'aic' | 'ddf';
 }
 
+/** For WebSocket requests - includes data payload */
+export interface SearchRequest extends SearchParams {
+  data: string;
+}
+
+/** Individual model result from search */
 export interface SearchResult {
   model: string;
   h: number;
@@ -40,6 +57,16 @@ export interface SearchResult {
   hasLoops: boolean;
 }
 
+/** Search status state */
+export type SearchStatus = 'idle' | 'connecting' | 'searching' | 'complete' | 'error';
+
+/** Search error information */
+export interface SearchError {
+  code: string;
+  message: string;
+}
+
+/** Progress updates during search */
 export interface SearchProgress {
   currentLevel: number;
   totalLevels: number;
@@ -55,7 +82,11 @@ export interface SearchProgress {
   avgModelTimeMs?: number;  // Average time per model in ms
 }
 
-// Fit types
+// =============================================================================
+// Fit Types
+// =============================================================================
+
+/** Result from fitting a specific model */
 export interface FitResult {
   model: string;
   h: number;

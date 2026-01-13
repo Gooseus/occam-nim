@@ -6,7 +6,7 @@
 version       = "0.1.0"
 author        = "Shawn Marincas"
 description   = "Reconstructability Analysis toolkit - discrete multivariate modeling with entropy methods"
-license       = "GPL-3.0"
+license       = "MIT"
 srcDir        = "src"
 
 # Library installation - only install the occam library

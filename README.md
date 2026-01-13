@@ -1072,8 +1072,11 @@ occam-nim/
 
 - Zwick, M. (2004). An Overview of Reconstructability Analysis. *Kybernetes*, 33(5/6), 877-905.
 - Krippendorff, K. (1986). *Information Theory: Structural Models for Qualitative Data*. Sage.
-- OCCAM original: https://github.com/occam-ra/occam (source code and documentation)
+
+## Acknowledgments
+
+This project is a clean-room Nim implementation of Reconstructability Analysis, inspired by and validated against the original [OCCAM project](https://github.com/occam-ra/occam) developed by Prof. Martin Zwick and team at Portland State University. While no code was derived from OCCAM, this project wouldn't exist without their decades of foundational work on RA methodology.
 
 ## License
 
-MIT License
+MIT License - see [LICENSE](LICENSE) for details.

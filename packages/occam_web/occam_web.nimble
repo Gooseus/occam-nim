@@ -7,7 +7,7 @@
 version       = "0.1.0"
 author        = "Shawn Marincas"
 description   = "OCCAM Web Server - REST API and static file server"
-license       = "GPL-3.0"
+license       = "MIT"
 srcDir        = "../../src"
 bin           = @["web"]
 binDir        = "../../bin"

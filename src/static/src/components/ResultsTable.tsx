@@ -1,8 +1,11 @@
-import React from 'react'
-import type { SearchResult } from '../hooks/useSearch'
+import React from 'react';
+import type { SearchResult } from '../types/dataSpec';
 
 interface ResultsTableProps {
-  results: SearchResult | null
+  results: {
+    results: SearchResult[];
+    totalEvaluated: number;
+  } | null;
 }
 
 export function ResultsTable({ results }: ResultsTableProps) {

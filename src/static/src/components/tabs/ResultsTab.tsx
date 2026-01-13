@@ -1,5 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppStore } from '../../store/useAppStore';
+import { ModelLatticeContainer } from '../lattice';
+import { colors, spacing, commonStyles } from '../../lib/theme';
+
+type ViewMode = 'table' | 'lattice';
 
 export function ResultsTab() {
   const searchResults = useAppStore((s) => s.searchResults);
@@ -8,8 +12,11 @@ export function ResultsTab() {
   const selectModelFromResults = useAppStore((s) => s.selectModelFromResults);
   const setActiveTab = useAppStore((s) => s.setActiveTab);
 
+  const [viewMode, setViewMode] = useState<ViewMode>('table');
+
   const hasSearchResults = searchResults.length > 0;
   const hasFitHistory = fitHistory.length > 0;
+  const currentBest = searchResults[0]?.model;
 
   if (!hasSearchResults && !hasFitHistory) {
     return (
@@ -33,49 +40,84 @@ export function ResultsTab() {
     <div style={styles.container}>
       {hasSearchResults && (
         <div style={styles.section}>
-          <h3 style={styles.heading}>
-            Search Results
-            <span style={styles.count}>
-              {searchResults.length} models ({searchTotalEvaluated} evaluated)
-            </span>
-          </h3>
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th style={styles.th}>#</th>
-                <th style={styles.th}>Model</th>
-                <th style={styles.th}>H</th>
-                <th style={styles.th}>AIC</th>
-                <th style={styles.th}>BIC</th>
-                <th style={styles.th}>Loops</th>
-                <th style={styles.th}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {searchResults.map((r, i) => (
-                <tr key={r.model} style={i % 2 === 0 ? {} : styles.altRow}>
-                  <td style={styles.tdRank}>{i + 1}</td>
-                  <td style={styles.tdModel}>{r.model}</td>
-                  <td style={styles.td}>{r.h.toFixed(4)}</td>
-                  <td style={styles.td}>{r.aic.toFixed(2)}</td>
-                  <td style={styles.td}>{r.bic.toFixed(2)}</td>
-                  <td style={styles.td}>
-                    <span style={r.hasLoops ? styles.loopsYes : styles.loopsNo}>
-                      {r.hasLoops ? 'Yes' : 'No'}
-                    </span>
-                  </td>
-                  <td style={styles.td}>
-                    <button
-                      onClick={() => selectModelFromResults(r.model)}
-                      style={styles.fitBtn}
-                    >
-                      Fit
-                    </button>
-                  </td>
+          <div style={styles.header}>
+            <h3 style={styles.heading}>
+              Search Results
+              <span style={styles.count}>
+                {searchResults.length} models ({searchTotalEvaluated} evaluated)
+              </span>
+            </h3>
+
+            {/* View toggle */}
+            <div style={styles.viewToggle}>
+              <button
+                onClick={() => setViewMode('table')}
+                style={{
+                  ...styles.toggleBtn,
+                  ...(viewMode === 'table' ? styles.toggleBtnActive : {}),
+                }}
+              >
+                Table
+              </button>
+              <button
+                onClick={() => setViewMode('lattice')}
+                style={{
+                  ...styles.toggleBtn,
+                  ...(viewMode === 'lattice' ? styles.toggleBtnActive : {}),
+                }}
+              >
+                Lattice
+              </button>
+            </div>
+          </div>
+
+          {viewMode === 'table' ? (
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>#</th>
+                  <th style={styles.th}>Model</th>
+                  <th style={styles.th}>H</th>
+                  <th style={styles.th}>AIC</th>
+                  <th style={styles.th}>BIC</th>
+                  <th style={styles.th}>Loops</th>
+                  <th style={styles.th}></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {searchResults.map((r, i) => (
+                  <tr key={r.model} style={i % 2 === 0 ? {} : styles.altRow}>
+                    <td style={styles.tdRank}>{i + 1}</td>
+                    <td style={styles.tdModel}>{r.model}</td>
+                    <td style={styles.td}>{r.h.toFixed(4)}</td>
+                    <td style={styles.td}>{r.aic.toFixed(2)}</td>
+                    <td style={styles.td}>{r.bic.toFixed(2)}</td>
+                    <td style={styles.td}>
+                      <span style={r.hasLoops ? styles.loopsYes : styles.loopsNo}>
+                        {r.hasLoops ? 'Yes' : 'No'}
+                      </span>
+                    </td>
+                    <td style={styles.td}>
+                      <button
+                        onClick={() => selectModelFromResults(r.model)}
+                        style={styles.fitBtn}
+                      >
+                        Fit
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <ModelLatticeContainer
+              searchResults={searchResults}
+              currentBest={currentBest}
+              width={950}
+              height={450}
+              onFitModel={selectModelFromResults}
+            />
+          )}
         </div>
       )}
 
@@ -100,7 +142,10 @@ export function ResultsTab() {
             </thead>
             <tbody>
               {fitHistory.map((r, i) => (
-                <tr key={`${r.model}-${r.timestamp}`} style={i % 2 === 0 ? {} : styles.altRow}>
+                <tr
+                  key={`${r.model}-${r.timestamp}`}
+                  style={i % 2 === 0 ? {} : styles.altRow}
+                >
                   <td style={styles.tdModel}>{r.model}</td>
                   <td style={styles.td}>{r.h.toFixed(4)}</td>
                   <td style={styles.td}>{r.t.toFixed(4)}</td>
@@ -128,13 +173,13 @@ export function ResultsTab() {
   );
 }
 
-function exportResults(searchResults: any[], fitHistory: any[]) {
+function exportResults(searchResults: unknown[], fitHistory: unknown[]) {
   let csv = '';
 
   if (searchResults.length > 0) {
     csv += 'Search Results\n';
     csv += 'Rank,Model,H,AIC,BIC,HasLoops\n';
-    searchResults.forEach((r, i) => {
+    (searchResults as Array<{ model: string; h: number; aic: number; bic: number; hasLoops: boolean }>).forEach((r, i) => {
       csv += `${i + 1},"${r.model}",${r.h},${r.aic},${r.bic},${r.hasLoops}\n`;
     });
     csv += '\n';
@@ -143,7 +188,7 @@ function exportResults(searchResults: any[], fitHistory: any[]) {
   if (fitHistory.length > 0) {
     csv += 'Fit History\n';
     csv += 'Model,H,T,DF,DDF,LR,AIC,BIC,Alpha,HasLoops\n';
-    fitHistory.forEach((r) => {
+    (fitHistory as Array<{ model: string; h: number; t: number; df: number; ddf: number; lr: number; aic: number; bic: number; alpha: number; hasLoops: boolean }>).forEach((r) => {
       csv += `"${r.model}",${r.h},${r.t},${r.df},${r.ddf},${r.lr},${r.aic},${r.bic},${r.alpha},${r.hasLoops}\n`;
     });
   }
@@ -159,100 +204,102 @@ function exportResults(searchResults: any[], fitHistory: any[]) {
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    padding: '1rem',
+    padding: spacing.lg,
   },
   empty: {
     textAlign: 'center',
-    padding: '2rem',
-    color: '#666',
+    padding: spacing.xxl,
+    color: colors.textMuted,
   },
   emptyActions: {
     display: 'flex',
-    gap: '1rem',
+    gap: spacing.lg,
     justifyContent: 'center',
-    marginTop: '1rem',
+    marginTop: spacing.lg,
   },
   linkBtn: {
-    padding: '0.5rem 1rem',
-    fontSize: '0.875rem',
-    background: '#3498db',
-    border: 'none',
-    borderRadius: '4px',
-    color: 'white',
-    cursor: 'pointer',
+    ...commonStyles.linkButton,
   },
   section: {
-    marginBottom: '1.5rem',
+    marginBottom: spacing.xl,
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
   },
   heading: {
     fontSize: '0.9rem',
     fontWeight: 600,
-    marginBottom: '0.75rem',
     display: 'flex',
     alignItems: 'center',
-    gap: '0.75rem',
+    gap: spacing.md,
+    margin: 0,
   },
   count: {
     fontSize: '0.75rem',
     fontWeight: 400,
-    color: '#666',
+    color: colors.textMuted,
+  },
+  viewToggle: {
+    display: 'flex',
+    gap: '1px',
+    background: colors.borderMedium,
+    borderRadius: '4px',
+    overflow: 'hidden',
+  },
+  toggleBtn: {
+    padding: `${spacing.xs} ${spacing.md}`,
+    fontSize: '0.75rem',
+    border: 'none',
+    background: colors.bgCard,
+    cursor: 'pointer',
+  },
+  toggleBtnActive: {
+    background: colors.primary,
+    color: 'white',
   },
   table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    fontSize: '0.8rem',
+    ...commonStyles.tableBase,
   },
   th: {
-    textAlign: 'left',
-    padding: '0.5rem',
-    borderBottom: '2px solid #ddd',
-    fontWeight: 600,
-    color: '#666',
+    ...commonStyles.th,
   },
   td: {
-    padding: '0.5rem',
-    borderBottom: '1px solid #eee',
+    ...commonStyles.td,
   },
   tdRank: {
-    padding: '0.5rem',
-    borderBottom: '1px solid #eee',
-    color: '#999',
+    ...commonStyles.td,
+    color: colors.textLight,
     width: '2rem',
   },
   tdModel: {
-    padding: '0.5rem',
-    borderBottom: '1px solid #eee',
-    fontFamily: 'monospace',
-    fontWeight: 500,
+    ...commonStyles.tdModel,
   },
   altRow: {
-    background: '#fafafa',
+    ...commonStyles.altRow,
   },
   loopsYes: {
-    color: '#e74c3c',
+    ...commonStyles.loopsYes,
   },
   loopsNo: {
-    color: '#27ae60',
+    ...commonStyles.loopsNo,
   },
   fitBtn: {
-    padding: '0.25rem 0.5rem',
+    padding: `${spacing.xs} ${spacing.sm}`,
     fontSize: '0.7rem',
-    border: '1px solid #3498db',
+    border: `1px solid ${colors.primary}`,
     borderRadius: '3px',
-    background: 'white',
-    color: '#3498db',
+    background: colors.bgCard,
+    color: colors.primary,
     cursor: 'pointer',
   },
   export: {
-    borderTop: '1px solid #eee',
-    paddingTop: '1rem',
+    borderTop: `1px solid ${colors.borderLight}`,
+    paddingTop: spacing.lg,
   },
   exportBtn: {
-    padding: '0.5rem 1rem',
-    fontSize: '0.8rem',
-    border: '1px solid #ccc',
-    borderRadius: '4px',
-    background: 'white',
-    cursor: 'pointer',
+    ...commonStyles.buttonBase,
   },
 };

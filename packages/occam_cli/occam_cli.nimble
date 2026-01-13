@@ -7,7 +7,7 @@
 version       = "0.1.0"
 author        = "Shawn Marincas"
 description   = "OCCAM CLI - command-line interface for Reconstructability Analysis"
-license       = "GPL-3.0"
+license       = "MIT"
 srcDir        = "../../src"
 bin           = @["cli"]
 binDir        = "../../bin"
