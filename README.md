@@ -1,5 +1,12 @@
 # OCCAM-Nim
 
+[![CI](https://github.com/Gooseus/occam-nim/actions/workflows/ci.yml/badge.svg)](https://github.com/Gooseus/occam-nim/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Nim](https://img.shields.io/badge/Nim-2.0%2B-orange.svg)](https://nim-lang.org)
+
+> [!WARNING]
+> **Work in Progress** - The core library and CLI are functional and validated against the original OCCAM, but APIs may change before v1.0.
+
 A Nim library for Reconstructability Analysis (RA) - a methodology for discrete multivariate modeling based on information theory and graph theory.
 
 ## Overview
