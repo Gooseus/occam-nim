@@ -23,7 +23,7 @@ proc createDirectedVarList(): VariableList =
 # Helper to create test data with known structure
 # This data has Z dependent on A and B with specific probabilities
 proc createTestData(varList: VariableList): Table =
-  result = initTable(varList.keySize)
+  result = initContingencyTable(varList.keySize)
 
   # Create data where Z=1 is more likely when A=1 or B=1
   # State (A,B,Z) -> count
@@ -57,7 +57,7 @@ suite "Conditional DV Table":
   setup:
     let varList = createDirectedVarList()
     var data = createTestData(varList)
-    var mgr = newVBManager(varList, data)
+    var mgr = initVBManager(varList, data)
 
   test "compute P(DV|IV) for each IV state":
     # Fit a model that includes all IVs predicting Z
@@ -134,7 +134,7 @@ suite "Confusion Matrix":
   setup:
     let varList = createDirectedVarList()
     var data = createTestData(varList)
-    var mgr = newVBManager(varList, data)
+    var mgr = initVBManager(varList, data)
 
   test "2x2 confusion matrix for binary DV":
     let model = mgr.makeModel("ABZ")
@@ -207,7 +207,7 @@ suite "Confusion Matrix - Multi-class":
 
   test "3x3 confusion matrix":
     # Create data with 3-class DV
-    var data = initTable(varList.keySize)
+    var data = initContingencyTable(varList.keySize)
     # A=0 -> mostly Z=0
     data.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)]), 70.0)
     data.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 1)]), 20.0)
@@ -218,7 +218,7 @@ suite "Confusion Matrix - Multi-class":
     data.add(varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 2)]), 60.0)
     data.sort()
 
-    var mgr = newVBManager(varList, data)
+    var mgr = initVBManager(varList, data)
     let model = mgr.makeModel("AZ")
     let cm = mgr.computeConfusionMatrix(model)
 
@@ -232,7 +232,7 @@ suite "Confusion Matrix - Multi-class":
     check cm.labels.len == 3
 
   test "NxN confusion matrix accuracy":
-    var data = initTable(varList.keySize)
+    var data = initContingencyTable(varList.keySize)
     data.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)]), 70.0)
     data.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 1)]), 20.0)
     data.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 2)]), 10.0)
@@ -241,7 +241,7 @@ suite "Confusion Matrix - Multi-class":
     data.add(varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 2)]), 60.0)
     data.sort()
 
-    var mgr = newVBManager(varList, data)
+    var mgr = initVBManager(varList, data)
     let model = mgr.makeModel("AZ")
     let cm = mgr.computeConfusionMatrix(model)
 
@@ -262,14 +262,14 @@ suite "Conditional DV - Edge Cases":
     discard varList.add(newVariable("A", "A", Cardinality(2), isDependent = false))
     discard varList.add(newVariable("Z", "Z", Cardinality(2), isDependent = true))
 
-    var data = initTable(varList.keySize)
+    var data = initContingencyTable(varList.keySize)
     data.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)]), 80.0)
     data.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 1)]), 20.0)
     data.add(varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 0)]), 30.0)
     data.add(varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 1)]), 70.0)
     data.sort()
 
-    var mgr = newVBManager(varList, data)
+    var mgr = initVBManager(varList, data)
     let model = mgr.makeModel("AZ")
     let dvTable = mgr.computeConditionalDV(model)
 
@@ -290,7 +290,7 @@ suite "Conditional DV - Edge Cases":
     discard varList.add(newVariable("Z", "Z", Cardinality(2), isDependent = true))
 
     # Create minimal data
-    var data = initTable(varList.keySize)
+    var data = initContingencyTable(varList.keySize)
     # Just a few states for testing
     for a in 0..1:
       for b in 0..1:
@@ -310,7 +310,7 @@ suite "Conditional DV - Edge Cases":
           ]), 100.0 * zProb)
     data.sort()
 
-    var mgr = newVBManager(varList, data)
+    var mgr = initVBManager(varList, data)
     let model = mgr.makeModel("ABCZ")
     let dvTable = mgr.computeConditionalDV(model)
 

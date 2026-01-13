@@ -28,7 +28,7 @@ proc makeRandomTable(varList: VariableList; seed: int = 42): coretable.Table =
   for i in 0..<varList.len:
     totalStates *= varList[VariableIndex(i)].cardinality.toInt
 
-  result = coretable.initTable(varList.keySize, totalStates)
+  result = coretable.initContingencyTable(varList.keySize, totalStates)
 
   var rng = seed
   proc nextRand(): float64 =
@@ -124,7 +124,7 @@ proc runTest(desc: string; varList: VariableList; inputTable: coretable.Table;
   ## Run timing test and return results
 
   # Warm up
-  var mgr = newVBManager(varList, inputTable)
+  var mgr = initVBManager(varList, inputTable)
   if models.len > 0:
     discard mgr.computeAIC(models[0])
     discard parallelComputeAIC(varList, inputTable, @[models[0]])
@@ -132,7 +132,7 @@ proc runTest(desc: string; varList: VariableList; inputTable: coretable.Table;
   # Sequential timing (best of numRuns) - use wall clock time
   var bestSeq = float64.high
   for _ in 1..numRuns:
-    var mgr2 = newVBManager(varList, inputTable)
+    var mgr2 = initVBManager(varList, inputTable)
     let start = getMonoTime()
     for model in models:
       discard mgr2.computeAIC(model)

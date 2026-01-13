@@ -32,7 +32,7 @@ proc loadPrimesDataset(filename: string): (VariableList, coretable.Table) =
       k.setValue(varList, VariableIndex(i), row[i].getInt() - 1)
     freqMap.mgetOrPut(k, 0.0) += 1.0
 
-  var tbl = coretable.initTable(varList.keySize, freqMap.len)
+  var tbl = coretable.initContingencyTable(varList.keySize, freqMap.len)
   for k, count in freqMap:
     tbl.add(k, count)
   tbl.sort()
@@ -59,7 +59,7 @@ proc main() =
   echo "State space: ", inputTable.len
   echo ""
 
-  var mgr = newVBManager(varList, inputTable)
+  var mgr = initVBManager(varList, inputTable)
   let startModel = mgr.bottomRefModel
   echo "Starting model: ", startModel.printName(varList)
   echo ""

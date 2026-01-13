@@ -28,7 +28,7 @@ proc makeRandomTable(varList: VariableList; seed: int = 42): coretable.Table =
   for i in 0..<varList.len:
     totalStates *= varList[VariableIndex(i)].cardinality.toInt
 
-  result = coretable.initTable(varList.keySize, totalStates)
+  result = coretable.initContingencyTable(varList.keySize, totalStates)
 
   var rng = seed
   proc nextRand(): float64 =
@@ -109,7 +109,7 @@ proc main() =
     let models = makeLooplessModels(varList, numModels)
 
     # Warm up
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     discard mgr.computeAIC(models[0])
 
     # Sequential (wall clock time)

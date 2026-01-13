@@ -27,7 +27,7 @@ proc makeUniformTable(varList: VariableList; vars: seq[VariableIndex]): Table =
   for v in vars:
     totalStates *= varList[v].cardinality.toInt
 
-  result = initTable(varList.keySize, totalStates)
+  result = initContingencyTable(varList.keySize, totalStates)
   let prob = 1.0 / float64(totalStates)
 
   var indices = newSeq[int](vars.len)
@@ -59,7 +59,7 @@ proc makeBiasedTable(varList: VariableList; vars: seq[VariableIndex]; bias: floa
   for v in vars:
     totalStates *= varList[v].cardinality.toInt
 
-  result = initTable(varList.keySize, totalStates)
+  result = initContingencyTable(varList.keySize, totalStates)
 
   var indices = newSeq[int](vars.len)
   var done = false
@@ -239,14 +239,14 @@ suite "Divide potentials":
 
   test "divide handles near-zero gracefully":
     let varList2 = makeTestVarList(2)
-    var tableA = initTable(varList2.keySize, 2)
+    var tableA = initContingencyTable(varList2.keySize, 2)
     let k0 = varList2.buildKey(@[(VariableIndex(0), 0)])
     let k1 = varList2.buildKey(@[(VariableIndex(0), 1)])
     tableA.add(k0, 1.0)
     tableA.add(k1, 0.0)
     tableA.sort()
 
-    var tableB = initTable(varList2.keySize, 2)
+    var tableB = initContingencyTable(varList2.keySize, 2)
     tableB.add(k0, 0.5)
     tableB.add(k1, 1e-20)  # Near zero
     tableB.sort()
@@ -455,7 +455,7 @@ suite "Compute joint from BP":
 suite "Numerical stability":
   test "marginalize handles very small probabilities":
     let varList = makeTestVarList(2)
-    var table = initTable(varList.keySize, 4)
+    var table = initContingencyTable(varList.keySize, 4)
     let keys = @[
       varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)]),
       varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 1)]),
@@ -480,14 +480,14 @@ suite "Numerical stability":
 
   test "multiply handles very small probabilities":
     let varList = makeTestVarList(2)
-    var tableA = initTable(varList.keySize, 2)
+    var tableA = initContingencyTable(varList.keySize, 2)
     let k0 = varList.buildKey(@[(VariableIndex(0), 0)])
     let k1 = varList.buildKey(@[(VariableIndex(0), 1)])
     tableA.add(k0, 1e-100)
     tableA.add(k1, 1e-100)
     tableA.sort()
 
-    var tableB = initTable(varList.keySize, 2)
+    var tableB = initContingencyTable(varList.keySize, 2)
     let kb0 = varList.buildKey(@[(VariableIndex(1), 0)])
     let kb1 = varList.buildKey(@[(VariableIndex(1), 1)])
     tableB.add(kb0, 1e-100)

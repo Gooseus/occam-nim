@@ -22,7 +22,7 @@ import ../../src/occam/search/chain
 suite "UCI Nursery - Data Loading":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
 
   setup:
     let jsonPath = ensureDataset("nursery")
@@ -65,7 +65,7 @@ suite "UCI Nursery - Data Loading":
 suite "UCI Nursery - Reference Models":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -73,7 +73,7 @@ suite "UCI Nursery - Reference Models":
     spec = loadDataSpec(jsonPath)
     varList = spec.toVariableList()
     inputTable = spec.toTable(varList)
-    mgr = newVBManager(varList, inputTable)
+    mgr = initVBManager(varList, inputTable)
 
   test "reference model statistics":
     let bottom = mgr.bottomRefModel
@@ -94,7 +94,7 @@ suite "UCI Nursery - Reference Models":
 suite "UCI Nursery - Loopless Search":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -102,7 +102,7 @@ suite "UCI Nursery - Loopless Search":
     spec = loadDataSpec(jsonPath)
     varList = spec.toVariableList()
     inputTable = spec.toTable(varList)
-    mgr = newVBManager(varList, inputTable)
+    mgr = initVBManager(varList, inputTable)
 
   test "search from independence":
     mgr.setSearchDirection(Direction.Ascending)
@@ -176,7 +176,7 @@ suite "UCI Nursery - Loopless Search":
 suite "UCI Nursery - Chain Models":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -184,7 +184,7 @@ suite "UCI Nursery - Chain Models":
     spec = loadDataSpec(jsonPath)
     varList = spec.toVariableList()
     inputTable = spec.toTable(varList)
-    mgr = newVBManager(varList, inputTable)
+    mgr = initVBManager(varList, inputTable)
 
   test "enumerate some chain models":
     # With 9 variables, there are many chains
@@ -214,7 +214,7 @@ suite "UCI Nursery - Chain Models":
 suite "UCI Nursery - Entropy Analysis":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -222,7 +222,7 @@ suite "UCI Nursery - Entropy Analysis":
     spec = loadDataSpec(jsonPath)
     varList = spec.toVariableList()
     inputTable = spec.toTable(varList)
-    mgr = newVBManager(varList, inputTable)
+    mgr = initVBManager(varList, inputTable)
 
   test "class distribution":
     var normTable = inputTable

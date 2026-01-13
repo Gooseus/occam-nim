@@ -30,7 +30,7 @@ proc makeUniformData(varList: VariableList): Table =
   for i in 0..<n:
     totalStates *= varList[VariableIndex(i)].cardinality.toInt
 
-  result = initTable(varList.keySize, totalStates)
+  result = initContingencyTable(varList.keySize, totalStates)
 
   var indices = newSeq[int](n)
   var done = false
@@ -62,7 +62,7 @@ proc makePerfectPredictorData(varList: VariableList): Table =
   for i in 0..<n:
     totalStates *= varList[VariableIndex(i)].cardinality.toInt
 
-  result = initTable(varList.keySize, totalStates)
+  result = initContingencyTable(varList.keySize, totalStates)
 
   var indices = newSeq[int](n)
   var done = false
@@ -98,7 +98,7 @@ suite "Conditional DV table - basic":
     let inputTable = makeUniformData(varList)
 
   test "computes correct number of IV states":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     # Bottom model: AB:Z
     let dvTable = mgr.computeConditionalDV(mgr.bottomRefModel)
@@ -108,7 +108,7 @@ suite "Conditional DV table - basic":
     check dvTable.ivIndices.len == 2
 
   test "computes DV probabilities for each state":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let dvTable = mgr.computeConditionalDV(mgr.bottomRefModel)
 
     # Each IV state should have DV probabilities
@@ -121,7 +121,7 @@ suite "Conditional DV table - basic":
       check abs(probs[0] + probs[1] - 1.0) < 1e-6
 
   test "produces predictions for each IV state":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let dvTable = mgr.computeConditionalDV(mgr.bottomRefModel)
 
     check dvTable.predictions.len == dvTable.ivStates.len
@@ -138,7 +138,7 @@ suite "Conditional DV table - accuracy":
     let inputTable = makePerfectPredictorData(varList)
 
   test "perfect predictor has high percent correct":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     # Model AZ should have perfect prediction
     let rAZ = initRelation(@[VariableIndex(0), VariableIndex(1)])
@@ -150,7 +150,7 @@ suite "Conditional DV table - accuracy":
     check dvTable.percentCorrect > 0.9
 
   test "counts match predictions":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let rAZ = initRelation(@[VariableIndex(0), VariableIndex(1)])
     let model = initModel(@[rAZ])
@@ -172,7 +172,7 @@ suite "Confusion matrix - basic":
     let inputTable = makeUniformData(varList)
 
   test "creates NxN matrix for N-class DV":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let cm = mgr.computeConfusionMatrix(mgr.bottomRefModel)
 
     # Binary DV -> 2x2 matrix
@@ -181,7 +181,7 @@ suite "Confusion matrix - basic":
     check cm.matrix[1].len == 2
 
   test "computes accuracy":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let cm = mgr.computeConfusionMatrix(mgr.bottomRefModel)
 
     # Accuracy should be between 0 and 1
@@ -189,7 +189,7 @@ suite "Confusion matrix - basic":
     check cm.accuracy <= 1.0
 
   test "computes per-class precision and recall":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let cm = mgr.computeConfusionMatrix(mgr.bottomRefModel)
 
     check cm.perClassPrecision.len == 2
@@ -210,7 +210,7 @@ suite "Confusion matrix - perfect predictor":
     let inputTable = makePerfectPredictorData(varList)
 
   test "diagonal dominates for perfect predictor":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let rAZ = initRelation(@[VariableIndex(0), VariableIndex(1)])
     let model = initModel(@[rAZ])
@@ -224,7 +224,7 @@ suite "Confusion matrix - perfect predictor":
     check diagonal > offDiagonal
 
   test "high accuracy for perfect predictor":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let rAZ = initRelation(@[VariableIndex(0), VariableIndex(1)])
     let model = initModel(@[rAZ])
@@ -243,7 +243,7 @@ suite "Confusion matrix - labels":
     discard varList.add(dvVar)
 
     let inputTable = makeUniformData(varList)
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let cm = mgr.computeConfusionMatrix(mgr.bottomRefModel)
 
@@ -254,7 +254,7 @@ suite "Confusion matrix - labels":
   test "uses default labels when none provided":
     let varList = makeDirectedVarList(1)
     let inputTable = makeUniformData(varList)
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let cm = mgr.computeConfusionMatrix(mgr.bottomRefModel)
 
@@ -269,7 +269,7 @@ suite "Analysis with different models":
     let inputTable = makePerfectPredictorData(varList)
 
   test "saturated model computes correctly":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     # Saturated model: ABZ
     let dvTable = mgr.computeConditionalDV(mgr.topRefModel)
@@ -278,7 +278,7 @@ suite "Analysis with different models":
     check dvTable.percentCorrect > 0.0
 
   test "different models have different predictions":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let bottomDvTable = mgr.computeConditionalDV(mgr.bottomRefModel)
     let topDvTable = mgr.computeConditionalDV(mgr.topRefModel)
@@ -296,7 +296,7 @@ suite "Analysis edge cases":
   test "single IV variable":
     let varList = makeDirectedVarList(1)  # A, Z
     let inputTable = makeUniformData(varList)
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let dvTable = mgr.computeConditionalDV(mgr.bottomRefModel)
 
@@ -307,7 +307,7 @@ suite "Analysis edge cases":
   test "three IV variables":
     let varList = makeDirectedVarList(3)  # A, B, C, Z
     let inputTable = makeUniformData(varList)
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let dvTable = mgr.computeConditionalDV(mgr.bottomRefModel)
 
@@ -320,7 +320,7 @@ suite "Analysis edge cases":
     let varList = makeDirectedVarList(1)  # A, Z
 
     # Create perfect predictor data
-    var inputTable = initTable(varList.keySize, 4)
+    var inputTable = initContingencyTable(varList.keySize, 4)
     # A=0, Z=0: high count
     inputTable.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)]), 100.0)
     # A=0, Z=1: zero count
@@ -331,7 +331,7 @@ suite "Analysis edge cases":
     inputTable.add(varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 1)]), 100.0)
     inputTable.sort()
 
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let rAZ = initRelation(@[VariableIndex(0), VariableIndex(1)])
     let model = initModel(@[rAZ])
 

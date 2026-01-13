@@ -23,7 +23,7 @@ import ../../src/occam/search/lattice
 suite "UCI Zoo - Data Loading":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
 
   setup:
     let jsonPath = ensureDataset("zoo")
@@ -62,7 +62,7 @@ suite "UCI Zoo - Data Loading":
 suite "UCI Zoo - Reference Models":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -70,7 +70,7 @@ suite "UCI Zoo - Reference Models":
     spec = loadDataSpec(jsonPath)
     varList = spec.toVariableList()
     inputTable = spec.toTable(varList)
-    mgr = newVBManager(varList, inputTable)
+    mgr = initVBManager(varList, inputTable)
 
   test "reference model statistics":
     let bottom = mgr.bottomRefModel
@@ -91,7 +91,7 @@ suite "UCI Zoo - Reference Models":
 suite "UCI Zoo - Loopless Search":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -99,7 +99,7 @@ suite "UCI Zoo - Loopless Search":
     spec = loadDataSpec(jsonPath)
     varList = spec.toVariableList()
     inputTable = spec.toTable(varList)
-    mgr = newVBManager(varList, inputTable)
+    mgr = initVBManager(varList, inputTable)
 
   test "search from independence":
     mgr.setSearchDirection(Direction.Ascending)
@@ -138,7 +138,7 @@ suite "UCI Zoo - Loopless Search":
 suite "UCI Zoo - Full Search (with loops)":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -146,7 +146,7 @@ suite "UCI Zoo - Full Search (with loops)":
     spec = loadDataSpec(jsonPath)
     varList = spec.toVariableList()
     inputTable = spec.toTable(varList)
-    mgr = newVBManager(varList, inputTable)
+    mgr = initVBManager(varList, inputTable)
 
   test "full search allows more models":
     mgr.setSearchDirection(Direction.Ascending)
@@ -176,7 +176,7 @@ suite "UCI Zoo - Full Search (with loops)":
 suite "UCI Zoo - Model Fitting":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -184,7 +184,7 @@ suite "UCI Zoo - Model Fitting":
     spec = loadDataSpec(jsonPath)
     varList = spec.toVariableList()
     inputTable = spec.toTable(varList)
-    mgr = newVBManager(varList, inputTable)
+    mgr = initVBManager(varList, inputTable)
 
   test "compute statistics for independence model":
     let model = mgr.bottomRefModel
@@ -217,7 +217,7 @@ suite "UCI Zoo - Model Fitting":
 suite "UCI Zoo - Entropy Analysis":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -225,7 +225,7 @@ suite "UCI Zoo - Entropy Analysis":
     spec = loadDataSpec(jsonPath)
     varList = spec.toVariableList()
     inputTable = spec.toTable(varList)
-    mgr = newVBManager(varList, inputTable)
+    mgr = initVBManager(varList, inputTable)
 
   test "binary variable entropies":
     var normTable = inputTable

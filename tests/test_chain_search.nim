@@ -149,7 +149,7 @@ suite "Chain search with statistics":
     discard varList.add(newVariable("C", "C", Cardinality(2)))
 
     # Create data with chain structure A-B-C
-    var inputTable = initTable(varList.keySize, 8)
+    var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
@@ -163,7 +163,7 @@ suite "Chain search with statistics":
     inputTable.sort()
 
   test "can compute statistics for all chains":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let chains = generateAllChains(varList)
 
     for chain in chains:
@@ -173,7 +173,7 @@ suite "Chain search with statistics":
       check h > 0.0
 
   test "all chains have same DF":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let chains = generateAllChains(varList)
 
     # All chain models of same length have same DF

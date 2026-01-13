@@ -29,7 +29,7 @@ proc makeRandomTable(varList: VariableList; seed: int = 42): coretable.Table =
   for i in 0..<varList.len:
     totalStates *= varList[VariableIndex(i)].cardinality.toInt
 
-  result = coretable.initTable(varList.keySize, totalStates)
+  result = coretable.initContingencyTable(varList.keySize, totalStates)
 
   var rng = seed
   proc nextRand(): float64 =
@@ -67,7 +67,7 @@ suite "Parallel Search - Basic Operations":
   test "processOneSeedWithFilter generates valid candidates":
     let varList = makeTestVarList(5, 3)  # 243 states
     let inputTable = makeRandomTable(varList)
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let startModel = mgr.bottomRefModel
 
@@ -137,7 +137,7 @@ suite "Parallel Search - Sequential Implementation":
   test "searchLevelSequential returns valid results":
     let varList = makeTestVarList(5, 3)
     let inputTable = makeRandomTable(varList)
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let startModel = mgr.bottomRefModel
 
@@ -152,7 +152,7 @@ suite "Parallel Search - Sequential Implementation":
   test "searchLevelSequential respects width parameter":
     let varList = makeTestVarList(5, 3)
     let inputTable = makeRandomTable(varList)
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let startModel = mgr.bottomRefModel
 
@@ -175,7 +175,7 @@ suite "Parallel Search - Parallel vs Sequential":
   test "parallel produces same models as sequential":
     let varList = makeTestVarList(5, 3)
     let inputTable = makeRandomTable(varList)
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let startModel = mgr.bottomRefModel
     let seeds = @[startModel]
@@ -203,7 +203,7 @@ suite "Parallel Search - Parallel vs Sequential":
   test "parallel with multiple seeds":
     let varList = makeTestVarList(6, 3)  # 729 states
     let inputTable = makeRandomTable(varList)
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let startModel = mgr.bottomRefModel
 
@@ -236,7 +236,7 @@ suite "Parallel Search - Full Search":
   test "parallelSearch explores multiple levels":
     let varList = makeTestVarList(5, 3)
     let inputTable = makeRandomTable(varList)
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let startModel = mgr.bottomRefModel
 
@@ -254,7 +254,7 @@ suite "Parallel Search - Full Search":
   test "parallelSearch vs sequential search produce same candidates":
     let varList = makeTestVarList(5, 3)
     let inputTable = makeRandomTable(varList)
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let startModel = mgr.bottomRefModel
 
@@ -282,7 +282,7 @@ suite "Parallel Search - Performance":
   test "parallel search timing baseline":
     let varList = makeTestVarList(6, 3)  # 729 states
     let inputTable = makeRandomTable(varList)
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let startModel = mgr.bottomRefModel
 

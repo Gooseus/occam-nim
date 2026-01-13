@@ -23,7 +23,7 @@ proc makeUniformTable(varList: VariableList): Table =
   for i in 0..<n:
     totalStates *= varList[VariableIndex(i)].cardinality.toInt
 
-  result = initTable(varList.keySize, totalStates)
+  result = initContingencyTable(varList.keySize, totalStates)
 
   var indices = newSeq[int](n)
   var done = false
@@ -57,7 +57,7 @@ suite "Full search vs loopless - generates loop models":
     let inputTable = makeUniformTable(varList)
 
   test "full search includes loop models in neighbors":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
 
     let fullSearch = initFullSearch(mgr)
@@ -89,7 +89,7 @@ suite "Full search vs loopless - generates loop models":
     # Full search may produce loop models (depends on starting model)
 
   test "from chain AB:BC, full search can add AC to create triangle":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
 
     let fullSearch = initFullSearch(mgr)
@@ -123,7 +123,7 @@ suite "Full search up (neutral)":
     let inputTable = makeUniformTable(varList)
 
   test "search from bottom finds parents":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initFullSearch(mgr)
     let parents = search.generateNeighbors(mgr.bottomRefModel)
@@ -136,7 +136,7 @@ suite "Full search up (neutral)":
       check parentDf > bottomDf
 
   test "parents from A:B:C include 2-variable models":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initFullSearch(mgr)
     let parents = search.generateNeighbors(mgr.bottomRefModel)
@@ -146,7 +146,7 @@ suite "Full search up (neutral)":
     check names.len >= 3
 
   test "search from saturated has no parents":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initFullSearch(mgr)
 
@@ -167,7 +167,7 @@ suite "Full search down (neutral)":
     let inputTable = makeUniformTable(varList)
 
   test "search from top finds children":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Descending)
     let search = initFullSearch(mgr)
     let children = search.generateNeighbors(mgr.topRefModel)
@@ -180,7 +180,7 @@ suite "Full search down (neutral)":
       check childDf < topDf
 
   test "search from bottom has no children":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Descending)
     let search = initFullSearch(mgr)
     let children = search.generateNeighbors(mgr.bottomRefModel)
@@ -189,7 +189,7 @@ suite "Full search down (neutral)":
     check children.len == 0
 
   test "search from chain AB:BC finds children":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Descending)
     let search = initFullSearch(mgr)
 
@@ -214,7 +214,7 @@ suite "Full search - deduplication":
     let inputTable = makeUniformTable(varList)
 
   test "neighbors have no duplicates":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initFullSearch(mgr)
 
@@ -417,7 +417,7 @@ suite "Full search with 4 variables":
     let inputTable = makeUniformTable(varList)
 
   test "search from bottom with 4 variables":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initFullSearch(mgr)
 
@@ -427,7 +427,7 @@ suite "Full search with 4 variables":
     check parents.len >= 6
 
   test "search from saturated with 4 variables":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Descending)
     let search = initFullSearch(mgr)
 
@@ -447,7 +447,7 @@ suite "Full search - directed systems":
     let inputTable = makeUniformTable(varList)
 
   test "directed search up from bottom":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initFullSearch(mgr)
 
@@ -457,7 +457,7 @@ suite "Full search - directed systems":
     check parents.len >= 0
 
   test "directed search maintains DV in predictive relations":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initFullSearch(mgr)
 

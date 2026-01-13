@@ -22,14 +22,14 @@ suite "Pearson Chi-Squared (P2)":
     #    = 225/25 + 25/25 + 25/25 + 225/25
     #    = 9 + 1 + 1 + 9 = 20
 
-    var observed = initTable(varList.keySize)
+    var observed = initContingencyTable(varList.keySize)
     observed.add(varList.buildKey(@[(VariableIndex(0), 0)]), 0.10)
     observed.add(varList.buildKey(@[(VariableIndex(0), 1)]), 0.20)
     observed.add(varList.buildKey(@[(VariableIndex(0), 2)]), 0.30)
     observed.add(varList.buildKey(@[(VariableIndex(0), 3)]), 0.40)
     observed.sort()
 
-    var expected = initTable(varList.keySize)
+    var expected = initContingencyTable(varList.keySize)
     expected.add(varList.buildKey(@[(VariableIndex(0), 0)]), 0.25)
     expected.add(varList.buildKey(@[(VariableIndex(0), 1)]), 0.25)
     expected.add(varList.buildKey(@[(VariableIndex(0), 2)]), 0.25)
@@ -40,14 +40,14 @@ suite "Pearson Chi-Squared (P2)":
     check abs(p2 - 20.0) < 0.001
 
   test "P2 is zero when observed equals expected":
-    var observed = initTable(varList.keySize)
+    var observed = initContingencyTable(varList.keySize)
     observed.add(varList.buildKey(@[(VariableIndex(0), 0)]), 0.25)
     observed.add(varList.buildKey(@[(VariableIndex(0), 1)]), 0.25)
     observed.add(varList.buildKey(@[(VariableIndex(0), 2)]), 0.25)
     observed.add(varList.buildKey(@[(VariableIndex(0), 3)]), 0.25)
     observed.sort()
 
-    var expected = initTable(varList.keySize)
+    var expected = initContingencyTable(varList.keySize)
     expected.add(varList.buildKey(@[(VariableIndex(0), 0)]), 0.25)
     expected.add(varList.buildKey(@[(VariableIndex(0), 1)]), 0.25)
     expected.add(varList.buildKey(@[(VariableIndex(0), 2)]), 0.25)
@@ -59,13 +59,13 @@ suite "Pearson Chi-Squared (P2)":
 
   test "P2 handles cells only in expected (observed = 0)":
     # If O=0 and E>0, contribution is (0-E)^2/E = E
-    var observed = initTable(varList.keySize)
+    var observed = initContingencyTable(varList.keySize)
     observed.add(varList.buildKey(@[(VariableIndex(0), 0)]), 0.50)
     observed.add(varList.buildKey(@[(VariableIndex(0), 1)]), 0.50)
     # No key [2] or [3]
     observed.sort()
 
-    var expected = initTable(varList.keySize)
+    var expected = initContingencyTable(varList.keySize)
     expected.add(varList.buildKey(@[(VariableIndex(0), 0)]), 0.25)
     expected.add(varList.buildKey(@[(VariableIndex(0), 1)]), 0.25)
     expected.add(varList.buildKey(@[(VariableIndex(0), 2)]), 0.25)
@@ -80,12 +80,12 @@ suite "Pearson Chi-Squared (P2)":
 
   test "P2 skips cells with E=0":
     # If E=0 and O>0, skip (would be division by zero)
-    var observed = initTable(varList.keySize)
+    var observed = initContingencyTable(varList.keySize)
     observed.add(varList.buildKey(@[(VariableIndex(0), 0)]), 0.50)
     observed.add(varList.buildKey(@[(VariableIndex(0), 1)]), 0.50)
     observed.sort()
 
-    var expected = initTable(varList.keySize)
+    var expected = initContingencyTable(varList.keySize)
     expected.add(varList.buildKey(@[(VariableIndex(0), 0)]), 1.0)
     # Key [1] has no expected value (E=0)
     expected.sort()
@@ -96,12 +96,12 @@ suite "Pearson Chi-Squared (P2)":
 
   test "P2 scales with sample size":
     # P2 = N * sum of (p_obs - p_exp)^2 / p_exp
-    var observed = initTable(varList.keySize)
+    var observed = initContingencyTable(varList.keySize)
     observed.add(varList.buildKey(@[(VariableIndex(0), 0)]), 0.40)
     observed.add(varList.buildKey(@[(VariableIndex(0), 1)]), 0.60)
     observed.sort()
 
-    var expected = initTable(varList.keySize)
+    var expected = initContingencyTable(varList.keySize)
     expected.add(varList.buildKey(@[(VariableIndex(0), 0)]), 0.50)
     expected.add(varList.buildKey(@[(VariableIndex(0), 1)]), 0.50)
     expected.sort()

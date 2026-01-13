@@ -21,7 +21,7 @@ import ../../src/occam/search/loopless
 suite "UCI Tic-Tac-Toe - Data Loading":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
 
   setup:
     let jsonPath = ensureDataset("tictactoe")
@@ -73,7 +73,7 @@ suite "UCI Tic-Tac-Toe - Data Loading":
 suite "UCI Tic-Tac-Toe - Reference Models":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -81,7 +81,7 @@ suite "UCI Tic-Tac-Toe - Reference Models":
     spec = loadDataSpec(jsonPath)
     varList = spec.toVariableList()
     inputTable = spec.toTable(varList)
-    mgr = newVBManager(varList, inputTable)
+    mgr = initVBManager(varList, inputTable)
 
   test "directed reference models":
     # For directed system, bottom should be IVZ model (all IVs independent, each with DV)
@@ -113,7 +113,7 @@ suite "UCI Tic-Tac-Toe - Reference Models":
 suite "UCI Tic-Tac-Toe - Directed Search":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -121,7 +121,7 @@ suite "UCI Tic-Tac-Toe - Directed Search":
     spec = loadDataSpec(jsonPath)
     varList = spec.toVariableList()
     inputTable = spec.toTable(varList)
-    mgr = newVBManager(varList, inputTable)
+    mgr = initVBManager(varList, inputTable)
 
   test "search finds predictive structure":
     mgr.setSearchDirection(Direction.Ascending)
@@ -158,7 +158,7 @@ suite "UCI Tic-Tac-Toe - Directed Search":
 suite "UCI Tic-Tac-Toe - Symmetry Analysis":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -166,7 +166,7 @@ suite "UCI Tic-Tac-Toe - Symmetry Analysis":
     spec = loadDataSpec(jsonPath)
     varList = spec.toVariableList()
     inputTable = spec.toTable(varList)
-    mgr = newVBManager(varList, inputTable)
+    mgr = initVBManager(varList, inputTable)
 
   test "marginal entropies of positions":
     # Due to game symmetry, corner positions should have similar entropy

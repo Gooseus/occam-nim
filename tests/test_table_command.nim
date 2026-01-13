@@ -21,7 +21,7 @@ suite "Relation Metrics":
     discard varList.add(newVariable("C", "C", Cardinality(2)))
 
     # Create input data with known structure
-    var inputTable = initTable(varList.keySize)
+    var inputTable = initContingencyTable(varList.keySize)
     # Strong AB association, weak BC association
     inputTable.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0), (VariableIndex(2), 0)]), 40.0)
     inputTable.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0), (VariableIndex(2), 1)]), 10.0)
@@ -35,7 +35,7 @@ suite "Relation Metrics":
     inputTable.normalize()
 
   test "computeRelationH returns entropy of marginal":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let relAB = initRelation(@[VariableIndex(0), VariableIndex(1)])
     let h = mgr.computeRelationH(relAB)
     # Should be between 0 and 2 bits (2 binary variables)
@@ -43,14 +43,14 @@ suite "Relation Metrics":
     check h <= 2.0
 
   test "computeRelationT returns transmission for a relation":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let relAB = initRelation(@[VariableIndex(0), VariableIndex(1)])
     let t = mgr.computeRelationT(relAB)
     # AB should have positive transmission (strong association)
     check t > 0.0
 
   test "getRelationMetrics returns all metrics for a relation":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let relAB = initRelation(@[VariableIndex(0), VariableIndex(1)])
     let metrics = mgr.getRelationMetrics(relAB)
 
@@ -61,7 +61,7 @@ suite "Relation Metrics":
     check metrics.p2 >= -1e-10  # Allow tiny negative due to floating point
 
   test "getModelRelationMetrics returns metrics for all relations in model":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let model = mgr.makeModel("AB:BC")
     let allMetrics = mgr.getModelRelationMetrics(model)
 

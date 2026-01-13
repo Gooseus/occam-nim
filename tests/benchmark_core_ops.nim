@@ -89,7 +89,7 @@ proc makeTestTable(varList: VariableList; seed: int = 42): coretable.Table =
   for i in 0..<varList.len:
     totalStates *= varList[VariableIndex(i)].cardinality.toInt
 
-  result = coretable.initTable(varList.keySize, totalStates)
+  result = coretable.initContingencyTable(varList.keySize, totalStates)
 
   var rng = seed
   proc nextRand(): float64 =
@@ -266,7 +266,7 @@ proc benchmarkTableOps() =
     let ops = 100
     let r = runBenchmark("Table.sumInto (256 tuples)", ops, WarmupRuns, BenchmarkRuns) do ():
       for _ in 0..<ops:
-        var t = coretable.initTable(varList4.keySize, 512)
+        var t = coretable.initContingencyTable(varList4.keySize, 512)
         # Add duplicate keys
         for tup in table4:
           t.add(tup)
@@ -301,7 +301,7 @@ proc benchmarkTableOps() =
     let keySize = varList4.keySize
     let ops = 256
     let r = runBenchmark("Table.add (256 tuples)", ops, WarmupRuns, BenchmarkRuns) do ():
-      var t = coretable.initTable(keySize, 256)
+      var t = coretable.initContingencyTable(keySize, 256)
       for tup in table4:
         t.add(tup.key, tup.value)
 
@@ -362,7 +362,7 @@ proc benchmarkCombinedOps() =
     let ops = 50
     let r = runBenchmark("Project + lookup (IPF pattern)", ops, WarmupRuns, BenchmarkRuns) do ():
       for _ in 0..<ops:
-        var scaled = coretable.initTable(varList.keySize, table.len)
+        var scaled = coretable.initContingencyTable(varList.keySize, table.len)
         for tup in table:
           let projKey = tup.key.applyMask(mask)
           let idx = marginal.find(projKey)

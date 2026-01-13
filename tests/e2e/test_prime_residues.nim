@@ -41,7 +41,7 @@ suite "Prime Residue Dataset Generation":
 suite "Prime Residue Analysis - Mod 3":
   var spec: DataSpec
   var varList: VariableList
-  var dataTable: Table
+  var dataTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -49,7 +49,7 @@ suite "Prime Residue Analysis - Mod 3":
     spec = loadDataSpec(path)
     varList = spec.toVariableList()
     dataTable = spec.toTable(varList)
-    mgr = newVBManager(varList, dataTable)
+    mgr = initVBManager(varList, dataTable)
 
   test "detects transmission from prev to next residue":
     # The independence model should have lower transmission than the saturated model
@@ -128,8 +128,8 @@ suite "Natural Numbers vs Primes Comparison":
     var primesTable = primesSpec.toTable(primesVarList)
     var naturalsTable = naturalsSpec.toTable(naturalsVarList)
 
-    var primesMgr = newVBManager(primesVarList, primesTable)
-    var naturalsMgr = newVBManager(naturalsVarList, naturalsTable)
+    var primesMgr = initVBManager(primesVarList, primesTable)
+    var naturalsMgr = initVBManager(naturalsVarList, naturalsTable)
 
     # Compute transmission for both
     let primesIndepH = primesMgr.computeH(primesMgr.bottomRefModel)
@@ -153,7 +153,7 @@ suite "Natural Numbers vs Primes Comparison":
 suite "Multi-Modulus Prime Analysis":
   var spec: DataSpec
   var varList: VariableList
-  var dataTable: Table
+  var dataTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -161,7 +161,7 @@ suite "Multi-Modulus Prime Analysis":
     spec = loadDataSpec(path)
     varList = spec.toVariableList()
     dataTable = spec.toTable(varList)
-    mgr = newVBManager(varList, dataTable)
+    mgr = initVBManager(varList, dataTable)
 
   test "dataset has correct structure":
     # Should have 4 variables: R3, R5, R7 (IVs) and R3 (DV)

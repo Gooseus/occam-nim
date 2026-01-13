@@ -367,7 +367,7 @@ suite "Create model from spec - Data recovery":
     var table = gm.samplesToTable(samples)
 
     # Create VB manager and fit the expected model
-    var mgr = newVBManager(varList, table)
+    var mgr = initVBManager(varList, table)
     let chainModel = mgr.makeModel("AB:BC")
     let fitResult = mgr.fitModel(chainModel)
 
@@ -383,7 +383,7 @@ suite "Create model from spec - Data recovery":
     var table = gm.samplesToTable(samples)
 
     # Create VB manager and fit the triangle model
-    var mgr = newVBManager(varList, table)
+    var mgr = initVBManager(varList, table)
     let triangleModel = mgr.makeModel("AB:BC:AC")
     let fitResult = mgr.fitModel(triangleModel)
 

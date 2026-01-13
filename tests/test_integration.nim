@@ -69,7 +69,7 @@ suite "Chain model recovery":
     let samples = graphModel.generateSamples(2000)
     var table = graphModel.samplesToTable(samples)
 
-    var mgr = newVBManager(varList, table)
+    var mgr = initVBManager(varList, table)
 
     # Compare BIC of different models
     let bicIndep = mgr.computeBIC(mgr.makeModel("A:B:C"))
@@ -95,7 +95,7 @@ suite "Chain model recovery":
     let samples = graphModel.generateSamples(5000)
     var table = graphModel.samplesToTable(samples)
 
-    var mgr = newVBManager(varList, table)
+    var mgr = initVBManager(varList, table)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initLooplessSearch(mgr, width = 5)
 
@@ -125,7 +125,7 @@ suite "Star model recovery":
     let samples = graphModel.generateSamples(3000)
     var table = graphModel.samplesToTable(samples)
 
-    var mgr = newVBManager(varList, table)
+    var mgr = initVBManager(varList, table)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initLooplessSearch(mgr, width = 5)
 
@@ -155,7 +155,7 @@ suite "Independence model recovery":
     let samples = graphModel.generateSamples(2000)
     var table = graphModel.samplesToTable(samples)
 
-    var mgr = newVBManager(varList, table)
+    var mgr = initVBManager(varList, table)
 
     # For independent data, search up should not find significant structure
     # The best model should be close to independence
@@ -192,7 +192,7 @@ suite "Directed system recovery":
 
     # Create data where Z depends on A (not B)
     # Manual construction: P(Z|A) with high dependence
-    var table = initTable(varList.keySize, 8)
+    var table = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for z in 0..<2:
@@ -205,7 +205,7 @@ suite "Directed system recovery":
           table.add(k, count)
     table.sort()
 
-    var mgr = newVBManager(varList, table)
+    var mgr = initVBManager(varList, table)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initLooplessSearch(mgr, width = 5)
 
@@ -237,7 +237,7 @@ suite "Sample size effects":
     randomize(111)
     let smallSamples = graphModel.generateSamples(200)
     var smallTable = graphModel.samplesToTable(smallSamples)
-    var mgrSmall = newVBManager(varList, smallTable)
+    var mgrSmall = initVBManager(varList, smallTable)
     mgrSmall.setSearchDirection(Direction.Ascending)
     let searchSmall = initLooplessSearch(mgrSmall, width = 5)
     let bestSmall = findBestModel(mgrSmall, searchSmall, levels = 5)
@@ -247,7 +247,7 @@ suite "Sample size effects":
     randomize(111)
     let largeSamples = graphModel.generateSamples(5000)
     var largeTable = graphModel.samplesToTable(largeSamples)
-    var mgrLarge = newVBManager(varList, largeTable)
+    var mgrLarge = initVBManager(varList, largeTable)
     mgrLarge.setSearchDirection(Direction.Ascending)
     let searchLarge = initLooplessSearch(mgrLarge, width = 5)
     let bestLarge = findBestModel(mgrLarge, searchLarge, levels = 5)
@@ -275,7 +275,7 @@ suite "Model comparison statistics":
     let samples = graphModel.generateSamples(3000)
     var table = graphModel.samplesToTable(samples)
 
-    var mgr = newVBManager(varList, table)
+    var mgr = initVBManager(varList, table)
 
     # Compare different models
     let modelIndep = mgr.makeModel("A:B:C")

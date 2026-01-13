@@ -41,7 +41,7 @@ proc loadPrimesDataset(filename: string): (VariableList, coretable.Table) =
     else:
       freqMap[k] = 1.0
 
-  var tbl = coretable.initTable(varList.keySize, freqMap.len)
+  var tbl = coretable.initContingencyTable(varList.keySize, freqMap.len)
   for k, count in freqMap:
     tbl.add(k, count)
   tbl.sort()
@@ -62,7 +62,7 @@ proc processSeedImpl(
     width: int
 ): SeedResult =
   ## Process one seed - thread-safe, creates own VBManager
-  var mgr = newVBManager(varList, inputTable)
+  var mgr = initVBManager(varList, inputTable)
   let search = initLooplessSearch(mgr, width, 10)
   let neighbors = search.generateNeighbors(seed)
 
@@ -149,7 +149,7 @@ proc main() =
   echo ""
 
   # Get seeds (first level of search)
-  var mgr = newVBManager(varList, inputTable)
+  var mgr = initVBManager(varList, inputTable)
   let bottomModel = mgr.bottomRefModel
   var seeds: seq[Model] = @[bottomModel]
 

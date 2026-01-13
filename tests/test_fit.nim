@@ -20,7 +20,7 @@ proc setupTestData(): (VariableList, Table) =
   discard varList.add(newVariable("C", "C", Cardinality(2)))
 
   # Create test data
-  var inputTable = initTable(varList.keySize)
+  var inputTable = initContingencyTable(varList.keySize)
   inputTable.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0), (VariableIndex(2), 0)]), 20.0)
   inputTable.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0), (VariableIndex(2), 1)]), 10.0)
   inputTable.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 1), (VariableIndex(2), 0)]), 15.0)
@@ -37,7 +37,7 @@ proc setupTestData(): (VariableList, Table) =
 suite "Fit - Saturated Model":
   test "saturated model fit equals input data":
     let (varList, inputTable) = setupTestData()
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let model = mgr.makeModel("ABC")
     let fitResult = mgr.fitModel(model)
@@ -47,7 +47,7 @@ suite "Fit - Saturated Model":
 
   test "saturated model entropy equals data entropy":
     let (varList, inputTable) = setupTestData()
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let model = mgr.makeModel("ABC")
     let fitResult = mgr.fitModel(model)
@@ -62,7 +62,7 @@ suite "Fit - Saturated Model":
 suite "Fit - Independence Model":
   test "independence model produces product of marginals":
     let (varList, inputTable) = setupTestData()
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let model = mgr.makeModel("A:B:C")
     let fitResult = mgr.fitModel(model)
@@ -72,7 +72,7 @@ suite "Fit - Independence Model":
 
   test "independence model has correct DF":
     let (varList, inputTable) = setupTestData()
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let model = mgr.makeModel("A:B:C")
     let fitResult = mgr.fitModel(model)
@@ -84,7 +84,7 @@ suite "Fit - Independence Model":
 suite "Fit - Chain Models (Loopless)":
   test "chain model AB:BC is loopless":
     let (varList, inputTable) = setupTestData()
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let model = mgr.makeModel("AB:BC")
     let fitResult = mgr.fitModel(model)
@@ -93,7 +93,7 @@ suite "Fit - Chain Models (Loopless)":
 
   test "chain model preserves marginals":
     let (varList, inputTable) = setupTestData()
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let model = mgr.makeModel("AB:BC")
     let fitTable = mgr.makeFitTable(model)
@@ -114,7 +114,7 @@ suite "Fit - Chain Models (Loopless)":
 suite "Fit - Loop Models":
   test "triangle model AB:BC:AC has loops":
     let (varList, inputTable) = setupTestData()
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let model = mgr.makeModel("AB:BC:AC")
     let fitResult = mgr.fitModel(model)
@@ -124,7 +124,7 @@ suite "Fit - Loop Models":
 
   test "triangle model preserves all marginals":
     let (varList, inputTable) = setupTestData()
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let model = mgr.makeModel("AB:BC:AC")
     let fitTable = mgr.makeFitTable(model)
@@ -146,7 +146,7 @@ suite "Fit - Loop Models":
 
   test "loop model entropy is between independence and saturated":
     let (varList, inputTable) = setupTestData()
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let saturated = mgr.makeModel("ABC")
     let independence = mgr.makeModel("A:B:C")
@@ -164,7 +164,7 @@ suite "Fit - Loop Models":
 suite "Fit - Residuals":
   test "residuals sum to approximately zero":
     let (varList, inputTable) = setupTestData()
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let model = mgr.makeModel("AB:BC")
     let residuals = mgr.computeResiduals(model)
@@ -177,7 +177,7 @@ suite "Fit - Residuals":
 
   test "saturated model has zero residuals":
     let (varList, inputTable) = setupTestData()
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let model = mgr.makeModel("ABC")
     let residuals = mgr.computeResiduals(model)
@@ -193,7 +193,7 @@ suite "Fit - Residuals":
 suite "Fit - Statistics":
   test "LR is non-negative":
     let (varList, inputTable) = setupTestData()
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let model = mgr.makeModel("AB:BC")
     let fitResult = mgr.fitModel(model)
@@ -202,7 +202,7 @@ suite "Fit - Statistics":
 
   test "AIC and BIC are computed":
     let (varList, inputTable) = setupTestData()
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let model = mgr.makeModel("AB:BC")
     let fitResult = mgr.fitModel(model)
@@ -212,7 +212,7 @@ suite "Fit - Statistics":
 
   test "alpha is between 0 and 1":
     let (varList, inputTable) = setupTestData()
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let model = mgr.makeModel("AB:BC")
     let fitResult = mgr.fitModel(model)
@@ -222,7 +222,7 @@ suite "Fit - Statistics":
 
   test "transmission equals H_data - H_model":
     let (varList, inputTable) = setupTestData()
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let model = mgr.makeModel("AB:BC")
     let fitResult = mgr.fitModel(model)
@@ -242,7 +242,7 @@ suite "Fit - Directed System":
     discard varList.add(newVariable("B", "B", Cardinality(2)))
     discard varList.add(newVariable("Z", "Z", Cardinality(2), isDependent = true))
 
-    var inputTable = initTable(varList.keySize)
+    var inputTable = initContingencyTable(varList.keySize)
     inputTable.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0), (VariableIndex(2), 0)]), 30.0)
     inputTable.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0), (VariableIndex(2), 1)]), 10.0)
     inputTable.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 1), (VariableIndex(2), 0)]), 20.0)
@@ -253,7 +253,7 @@ suite "Fit - Directed System":
     inputTable.add(varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 1), (VariableIndex(2), 1)]), 20.0)
     inputTable.sort()
 
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     # Fit a model where A predicts Z
     let model = mgr.makeModel("B:AZ")
@@ -266,7 +266,7 @@ suite "Fit - Directed System":
 suite "Fit - Model Comparison":
   test "simpler models have higher entropy":
     let (varList, inputTable) = setupTestData()
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let sat = mgr.fitModel(mgr.makeModel("ABC"))
     let chain = mgr.fitModel(mgr.makeModel("AB:BC"))
@@ -277,7 +277,7 @@ suite "Fit - Model Comparison":
 
   test "simpler models have higher LR":
     let (varList, inputTable) = setupTestData()
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let sat = mgr.fitModel(mgr.makeModel("ABC"))
     let chain = mgr.fitModel(mgr.makeModel("AB:BC"))

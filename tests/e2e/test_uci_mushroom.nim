@@ -21,7 +21,7 @@ import ../../src/occam/search/loopless
 suite "UCI Mushroom - Data Loading":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
 
   setup:
     let jsonPath = ensureDataset("mushroom")
@@ -76,7 +76,7 @@ suite "UCI Mushroom - Data Loading":
 suite "UCI Mushroom - Variable Analysis":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
 
   setup:
     let jsonPath = ensureDataset("mushroom")
@@ -99,7 +99,7 @@ suite "UCI Mushroom - Variable Analysis":
 suite "UCI Mushroom - Reference Models":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -107,7 +107,7 @@ suite "UCI Mushroom - Reference Models":
     spec = loadDataSpec(jsonPath)
     varList = spec.toVariableList()
     inputTable = spec.toTable(varList)
-    mgr = newVBManager(varList, inputTable)
+    mgr = initVBManager(varList, inputTable)
 
   test "reference model statistics":
     let bottom = mgr.bottomRefModel
@@ -128,7 +128,7 @@ suite "UCI Mushroom - Reference Models":
 suite "UCI Mushroom - Limited Search":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -136,7 +136,7 @@ suite "UCI Mushroom - Limited Search":
     spec = loadDataSpec(jsonPath)
     varList = spec.toVariableList()
     inputTable = spec.toTable(varList)
-    mgr = newVBManager(varList, inputTable)
+    mgr = initVBManager(varList, inputTable)
 
   test "search from independence (limited levels)":
     # With 23 variables, search space is huge
@@ -186,7 +186,7 @@ suite "UCI Mushroom - Limited Search":
 suite "UCI Mushroom - Subset Analysis":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -194,7 +194,7 @@ suite "UCI Mushroom - Subset Analysis":
     spec = loadDataSpec(jsonPath)
     varList = spec.toVariableList()
     inputTable = spec.toTable(varList)
-    mgr = newVBManager(varList, inputTable)
+    mgr = initVBManager(varList, inputTable)
 
   test "single variable predictive power":
     # Find which single variable best predicts edibility

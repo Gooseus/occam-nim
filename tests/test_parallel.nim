@@ -35,7 +35,7 @@ proc makeRandomTable(varList: VariableList; seed: int = 42): coretable.Table =
   for i in 0..<varList.len:
     totalStates *= varList[VariableIndex(i)].cardinality.toInt
 
-  result = coretable.initTable(varList.keySize, totalStates)
+  result = coretable.initContingencyTable(varList.keySize, totalStates)
 
   var rng = seed
   proc nextRand(): float64 =
@@ -103,7 +103,7 @@ suite "Parallel Evaluation - Numerical Equivalence":
     let inputTable = makeRandomTable(varList)
     let models = generateTestModels(varList)
 
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     # Sequential evaluation
     var seqResults: seq[float64]
@@ -125,7 +125,7 @@ suite "Parallel Evaluation - Numerical Equivalence":
     let inputTable = makeRandomTable(varList)
     let models = generateTestModels(varList)
 
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     var seqResults: seq[float64]
     for model in models:
@@ -144,7 +144,7 @@ suite "Parallel Evaluation - Numerical Equivalence":
     let inputTable = makeRandomTable(varList)
     let models = generateTestModels(varList)
 
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     var seqResults: seq[float64]
     for model in models:
@@ -169,7 +169,7 @@ suite "Parallel Evaluation - Numerical Equivalence":
       initRelation(@[VariableIndex(2), VariableIndex(3)])
     ])
 
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let seqFit = mgr.makeFitTable(model)
 
     # Verify fit table is valid
@@ -187,14 +187,14 @@ suite "Parallel Evaluation - Thread Safety":
 
     # Run evaluation multiple times to catch race conditions
     for trial in 1..5:
-      var mgr = newVBManager(varList, inputTable)
+      var mgr = initVBManager(varList, inputTable)
       var results: seq[float64]
       for model in models:
         results.add(mgr.computeAIC(model))
 
       # Results should be deterministic
       if trial > 1:
-        var mgr2 = newVBManager(varList, inputTable)
+        var mgr2 = initVBManager(varList, inputTable)
         for i, model in models:
           let r = mgr2.computeAIC(model)
           check abs(results[i] - r) < 1e-10
@@ -206,8 +206,8 @@ suite "Parallel Evaluation - Thread Safety":
     let models = generateTestModels(varList)
 
     # Create two independent managers
-    var mgr1 = newVBManager(varList, inputTable)
-    var mgr2 = newVBManager(varList, inputTable)
+    var mgr1 = initVBManager(varList, inputTable)
+    var mgr2 = initVBManager(varList, inputTable)
 
     # Evaluate same models with both
     for model in models:
@@ -224,7 +224,7 @@ suite "Parallel Evaluation - Performance":
     let inputTable = makeRandomTable(varList)
     let models = generateTestModels(varList)
 
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     let start = getMonoTime()
     for _ in 1..3:  # Multiple iterations for stability
@@ -251,7 +251,7 @@ suite "Parallel Evaluation - Performance":
         manyModels.add(m)
 
     # Sequential timing (wall clock)
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let seqStart = getMonoTime()
     for model in manyModels:
       discard mgr.computeAIC(model)
@@ -343,7 +343,7 @@ suite "Parallel Utilities":
     let inputTable = makeRandomTable(varList)
     let models = generateTestModels(varList)
 
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     # Simulate parallel results (in reality from different threads)
     var batch1Results: seq[(Model, float64)]
@@ -378,7 +378,7 @@ suite "Read-Only VBManager Operations":
       initRelation(@[VariableIndex(1), VariableIndex(2)])
     ])
 
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
 
     # Compute H - should work without modifying caches
     let h1 = mgr.computeH(model)

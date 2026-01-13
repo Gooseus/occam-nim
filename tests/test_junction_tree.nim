@@ -33,7 +33,7 @@ proc makeUniformTable(varList: VariableList): Table =
   for i in 0..<n:
     totalStates *= varList[VariableIndex(i)].cardinality.toInt
 
-  result = initTable(varList.keySize, totalStates)
+  result = initContingencyTable(varList.keySize, totalStates)
   let prob = 1.0 / float64(totalStates)
 
   var indices = newSeq[int](n)
@@ -67,7 +67,7 @@ proc makeChainData(varList: VariableList; strength: float64 = 0.8): Table =
   for i in 0..<n:
     totalStates *= varList[VariableIndex(i)].cardinality.toInt
 
-  result = initTable(varList.keySize, totalStates)
+  result = initContingencyTable(varList.keySize, totalStates)
 
   var indices = newSeq[int](n)
   var done = false

@@ -47,7 +47,7 @@ proc loadPrimesDataset(filename: string): (VariableList, coretable.Table) =
       freqMap[k] = 1.0
 
   # Build table from frequencies
-  var tbl = coretable.initTable(varList.keySize, freqMap.len)
+  var tbl = coretable.initContingencyTable(varList.keySize, freqMap.len)
   for k, count in freqMap:
     tbl.add(k, count)
   tbl.sort()
@@ -94,7 +94,7 @@ proc benchmarkDataset(dataFile: string; label: string) =
   echo ""
 
   # Setup search
-  var mgr = newVBManager(varList, inputTable)
+  var mgr = initVBManager(varList, inputTable)
   let startModel = mgr.bottomRefModel
 
   echo "Starting model: ", startModel.printName(varList)

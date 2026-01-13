@@ -16,7 +16,7 @@ suite "Shannon entropy":
 
   test "entropy of uniform distribution":
     # Uniform distribution over 4 states: H = log2(4) = 2.0
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     t.add(varList.buildKey(@[(VariableIndex(0), 0)]), 0.25)
     t.add(varList.buildKey(@[(VariableIndex(0), 1)]), 0.25)
     t.add(varList.buildKey(@[(VariableIndex(0), 2)]), 0.25)
@@ -27,7 +27,7 @@ suite "Shannon entropy":
 
   test "entropy of deterministic distribution":
     # Single state with prob 1: H = 0
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     t.add(varList.buildKey(@[(VariableIndex(0), 0)]), 1.0)
 
     let h = entropy(t)
@@ -35,7 +35,7 @@ suite "Shannon entropy":
 
   test "entropy of binary 50-50":
     # Binary uniform: H = log2(2) = 1.0
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     t.add(varList.buildKey(@[(VariableIndex(0), 0)]), 0.5)
     t.add(varList.buildKey(@[(VariableIndex(0), 1)]), 0.5)
 
@@ -44,7 +44,7 @@ suite "Shannon entropy":
 
   test "entropy of skewed binary":
     # p=0.9, q=0.1: H = -0.9*log2(0.9) - 0.1*log2(0.1)
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     t.add(varList.buildKey(@[(VariableIndex(0), 0)]), 0.9)
     t.add(varList.buildKey(@[(VariableIndex(0), 1)]), 0.1)
 
@@ -54,7 +54,7 @@ suite "Shannon entropy":
 
   test "entropy ignores zero probabilities":
     # Should handle 0 probability without NaN
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     t.add(varList.buildKey(@[(VariableIndex(0), 0)]), 1.0)
     t.add(varList.buildKey(@[(VariableIndex(0), 1)]), 0.0)
 
@@ -62,7 +62,7 @@ suite "Shannon entropy":
     check abs(h) < 1e-10  # Same as deterministic
 
   test "entropy of empty table":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     let h = entropy(t)
     check abs(h) < 1e-10
 
@@ -73,12 +73,12 @@ suite "Transmission (KL divergence)":
 
   test "transmission of identical distributions":
     # KL(P||P) = 0
-    var p = initTable(varList.keySize)
+    var p = initContingencyTable(varList.keySize)
     p.add(varList.buildKey(@[(VariableIndex(0), 0)]), 0.5)
     p.add(varList.buildKey(@[(VariableIndex(0), 1)]), 0.5)
     p.sort()
 
-    var q = initTable(varList.keySize)
+    var q = initContingencyTable(varList.keySize)
     q.add(varList.buildKey(@[(VariableIndex(0), 0)]), 0.5)
     q.add(varList.buildKey(@[(VariableIndex(0), 1)]), 0.5)
     q.sort()
@@ -87,12 +87,12 @@ suite "Transmission (KL divergence)":
     check abs(t) < 1e-10
 
   test "transmission is non-negative":
-    var p = initTable(varList.keySize)
+    var p = initContingencyTable(varList.keySize)
     p.add(varList.buildKey(@[(VariableIndex(0), 0)]), 0.9)
     p.add(varList.buildKey(@[(VariableIndex(0), 1)]), 0.1)
     p.sort()
 
-    var q = initTable(varList.keySize)
+    var q = initContingencyTable(varList.keySize)
     q.add(varList.buildKey(@[(VariableIndex(0), 0)]), 0.5)
     q.add(varList.buildKey(@[(VariableIndex(0), 1)]), 0.5)
     q.sort()
@@ -103,12 +103,12 @@ suite "Transmission (KL divergence)":
   test "transmission calculation":
     # KL(P||Q) where P = (0.9, 0.1), Q = (0.5, 0.5)
     # T = 0.9*log2(0.9/0.5) + 0.1*log2(0.1/0.5)
-    var p = initTable(varList.keySize)
+    var p = initContingencyTable(varList.keySize)
     p.add(varList.buildKey(@[(VariableIndex(0), 0)]), 0.9)
     p.add(varList.buildKey(@[(VariableIndex(0), 1)]), 0.1)
     p.sort()
 
-    var q = initTable(varList.keySize)
+    var q = initContingencyTable(varList.keySize)
     q.add(varList.buildKey(@[(VariableIndex(0), 0)]), 0.5)
     q.add(varList.buildKey(@[(VariableIndex(0), 1)]), 0.5)
     q.sort()
@@ -129,7 +129,7 @@ suite "Mutual information (as transmission)":
     # If A,B independent: p(a,b) = p(a)*p(b), so H(AB) = H(A) + H(B), T = 0
 
     # Joint distribution for independent A,B (uniform marginals)
-    var joint = initTable(varList.keySize)
+    var joint = initContingencyTable(varList.keySize)
     joint.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)]), 0.25)
     joint.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 1)]), 0.25)
     joint.add(varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 0)]), 0.25)
@@ -146,7 +146,7 @@ suite "Mutual information (as transmission)":
 
   test "mutual information of perfectly correlated variables":
     # Perfect correlation: A = B always
-    var joint = initTable(varList.keySize)
+    var joint = initContingencyTable(varList.keySize)
     joint.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)]), 0.5)
     joint.add(varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 1)]), 0.5)
     joint.sort()

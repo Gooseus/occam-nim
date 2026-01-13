@@ -28,7 +28,7 @@ proc makeRandomTable(varList: VariableList; seed: int = 42): coretable.Table =
   for i in 0..<varList.len:
     totalStates *= varList[VariableIndex(i)].cardinality.toInt
 
-  result = coretable.initTable(varList.keySize, totalStates)
+  result = coretable.initContingencyTable(varList.keySize, totalStates)
 
   var rng = seed
   proc nextRand(): float64 =
@@ -66,7 +66,7 @@ var gAicResults: seq[float64]
 
 proc evalModelAt(idx: int; model: Model) {.gcsafe.} =
   {.cast(gcsafe).}:
-    var mgr = newVBManager(gVarList, gInputTable)
+    var mgr = initVBManager(gVarList, gInputTable)
     gAicResults[idx] = mgr.computeAIC(model)
 
 
@@ -74,7 +74,7 @@ proc benchmarkModelLevel(varList: VariableList; inputTable: coretable.Table; mod
   ## Returns (seqMs, parMs, speedup) - averaged over multiple runs
 
   # Sequential (multiple runs for better accuracy)
-  var mgr = newVBManager(varList, inputTable)
+  var mgr = initVBManager(varList, inputTable)
   let seqStart = getMonoTime()
   for _ in 1..runs:
     for model in models:
@@ -127,7 +127,7 @@ proc main() =
     let inputTable = makeRandomTable(varList)
 
     # Generate models to evaluate
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let bottomModel = mgr.bottomRefModel
     let search = initLooplessSearch(mgr, 10, 10)
 

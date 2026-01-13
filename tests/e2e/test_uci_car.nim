@@ -22,7 +22,7 @@ import ../../src/occam/search/full
 suite "UCI Car Evaluation - Data Loading":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
 
   setup:
     let jsonPath = ensureDataset("car")
@@ -65,7 +65,7 @@ suite "UCI Car Evaluation - Data Loading":
 suite "UCI Car Evaluation - Reference Models":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -73,7 +73,7 @@ suite "UCI Car Evaluation - Reference Models":
     spec = loadDataSpec(jsonPath)
     varList = spec.toVariableList()
     inputTable = spec.toTable(varList)
-    mgr = newVBManager(varList, inputTable)
+    mgr = initVBManager(varList, inputTable)
 
   test "independence model statistics":
     let indep = mgr.bottomRefModel
@@ -108,7 +108,7 @@ suite "UCI Car Evaluation - Reference Models":
 suite "UCI Car Evaluation - Loopless Search":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -116,7 +116,7 @@ suite "UCI Car Evaluation - Loopless Search":
     spec = loadDataSpec(jsonPath)
     varList = spec.toVariableList()
     inputTable = spec.toTable(varList)
-    mgr = newVBManager(varList, inputTable)
+    mgr = initVBManager(varList, inputTable)
 
   test "search from independence finds structure":
     mgr.setSearchDirection(Direction.Ascending)
@@ -189,7 +189,7 @@ suite "UCI Car Evaluation - Loopless Search":
 suite "UCI Car Evaluation - Model Fitting":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -197,7 +197,7 @@ suite "UCI Car Evaluation - Model Fitting":
     spec = loadDataSpec(jsonPath)
     varList = spec.toVariableList()
     inputTable = spec.toTable(varList)
-    mgr = newVBManager(varList, inputTable)
+    mgr = initVBManager(varList, inputTable)
 
   test "fit saturated model":
     let model = mgr.topRefModel
@@ -246,7 +246,7 @@ suite "UCI Car Evaluation - Model Fitting":
 suite "UCI Car Evaluation - Entropy Analysis":
   var spec: DataSpec
   var varList: VariableList
-  var inputTable: Table
+  var inputTable: ContingencyTable
   var mgr: VBManager
 
   setup:
@@ -254,7 +254,7 @@ suite "UCI Car Evaluation - Entropy Analysis":
     spec = loadDataSpec(jsonPath)
     varList = spec.toVariableList()
     inputTable = spec.toTable(varList)
-    mgr = newVBManager(varList, inputTable)
+    mgr = initVBManager(varList, inputTable)
 
   test "data entropy is bounded":
     var normTable = inputTable

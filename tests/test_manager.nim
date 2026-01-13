@@ -21,7 +21,7 @@ suite "VBManager creation":
     discard varList.add(newVariable("C", "C", Cardinality(2)))
 
     # Create sample data - ABC full table
-    var inputTable = initTable(varList.keySize, 8)
+    var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
@@ -35,16 +35,16 @@ suite "VBManager creation":
     inputTable.sort()
 
   test "create manager":
-    let mgr = newVBManager(varList, inputTable)
+    let mgr = initVBManager(varList, inputTable)
     check mgr.varList.len == 3
     check mgr.sampleSize > 0
 
   test "manager stores sample size":
-    let mgr = newVBManager(varList, inputTable)
+    let mgr = initVBManager(varList, inputTable)
     check mgr.sampleSize == inputTable.sum
 
   test "manager provides variable list":
-    let mgr = newVBManager(varList, inputTable)
+    let mgr = initVBManager(varList, inputTable)
     check mgr.varList[VariableIndex(0)].abbrev == "A"
 
 
@@ -55,7 +55,7 @@ suite "Reference models":
     discard varList.add(newVariable("B", "B", Cardinality(2)))
     discard varList.add(newVariable("C", "C", Cardinality(2)))
 
-    var inputTable = initTable(varList.keySize, 8)
+    var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
@@ -67,14 +67,14 @@ suite "Reference models":
     inputTable.sort()
 
   test "top reference model is saturated":
-    let mgr = newVBManager(varList, inputTable)
+    let mgr = initVBManager(varList, inputTable)
     let top = mgr.topRefModel
     check top.relationCount == 1
     # Saturated model has one relation with all variables
     check top.relations[0].variableCount == 3
 
   test "bottom reference model is independence":
-    let mgr = newVBManager(varList, inputTable)
+    let mgr = initVBManager(varList, inputTable)
     let bottom = mgr.bottomRefModel
     # Independence model for neutral system has single-variable relations
     check bottom.relationCount == 3
@@ -89,7 +89,7 @@ suite "Directed system reference models":
     discard varList.add(newVariable("B", "B", Cardinality(2)))
     discard varList.add(newVariable("Z", "Z", Cardinality(2), isDependent = true))
 
-    var inputTable = initTable(varList.keySize, 8)
+    var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for z in 0..<2:
@@ -101,14 +101,14 @@ suite "Directed system reference models":
     inputTable.sort()
 
   test "directed top model is saturated":
-    let mgr = newVBManager(varList, inputTable)
+    let mgr = initVBManager(varList, inputTable)
     let top = mgr.topRefModel
     # Saturated model: ABZ (one relation with all variables)
     check top.relationCount == 1
     check top.relations[0].variableCount == 3
 
   test "directed bottom model has IV and DV relations":
-    let mgr = newVBManager(varList, inputTable)
+    let mgr = initVBManager(varList, inputTable)
     let bottom = mgr.bottomRefModel
     # Independence model for directed: IV (AB) : Z
     check bottom.relationCount == 2
@@ -134,7 +134,7 @@ suite "Relation caching":
     discard varList.add(newVariable("B", "B", Cardinality(2)))
     discard varList.add(newVariable("C", "C", Cardinality(2)))
 
-    var inputTable = initTable(varList.keySize, 8)
+    var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
@@ -146,13 +146,13 @@ suite "Relation caching":
     inputTable.sort()
 
   test "getRelation returns cached relation":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let rel1 = mgr.getRelation(@[VariableIndex(0), VariableIndex(1)])
     let rel2 = mgr.getRelation(@[VariableIndex(0), VariableIndex(1)])
     check rel1 == rel2  # Same object
 
   test "getRelation with different vars returns different relation":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let rel1 = mgr.getRelation(@[VariableIndex(0), VariableIndex(1)])
     let rel2 = mgr.getRelation(@[VariableIndex(1), VariableIndex(2)])
     check rel1 != rel2
@@ -165,7 +165,7 @@ suite "Projection computation":
     discard varList.add(newVariable("B", "B", Cardinality(2)))
     discard varList.add(newVariable("C", "C", Cardinality(2)))
 
-    var inputTable = initTable(varList.keySize, 8)
+    var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
@@ -178,7 +178,7 @@ suite "Projection computation":
     inputTable.sort()
 
   test "makeProjection creates correct projection":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     var rel = mgr.getRelation(@[VariableIndex(0), VariableIndex(1)])
     mgr.makeProjection(rel)
     check rel.hasProjection
@@ -187,7 +187,7 @@ suite "Projection computation":
     check proj.sum == inputTable.sum  # Same total
 
   test "projection values are correct":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     var rel = mgr.getRelation(@[VariableIndex(0)])  # Just A
     mgr.makeProjection(rel)
     let proj = rel.projection
@@ -202,7 +202,7 @@ suite "Entropy computation":
     discard varList.add(newVariable("B", "B", Cardinality(2)))
 
     # Uniform distribution
-    var uniformTable = initTable(varList.keySize, 4)
+    var uniformTable = initContingencyTable(varList.keySize, 4)
     for a in 0..<2:
       for b in 0..<2:
         var k = newKey(varList.keySize)
@@ -212,13 +212,13 @@ suite "Entropy computation":
     uniformTable.sort()
 
   test "compute entropy for uniform distribution":
-    var mgr = newVBManager(varList, uniformTable)
+    var mgr = initVBManager(varList, uniformTable)
     let h = mgr.computeH(mgr.topRefModel)
     # H = log2(4) = 2.0 for uniform over 4 states
     check abs(h - 2.0) < 0.001
 
   test "compute transmission":
-    var mgr = newVBManager(varList, uniformTable)
+    var mgr = initVBManager(varList, uniformTable)
     let t = mgr.computeT(mgr.bottomRefModel)
     # For uniform independent model, T ≈ 0
     check abs(t) < 0.01
@@ -231,7 +231,7 @@ suite "Model statistics":
     discard varList.add(newVariable("B", "B", Cardinality(2)))
     discard varList.add(newVariable("C", "C", Cardinality(2)))
 
-    var inputTable = initTable(varList.keySize, 8)
+    var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
@@ -243,21 +243,21 @@ suite "Model statistics":
     inputTable.sort()
 
   test "compute degrees of freedom":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let top = mgr.topRefModel
     let df = mgr.computeDF(top)
     # Saturated model: DF = 2^3 - 1 = 7
     check df == 7
 
   test "compute DF for independence model":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let bottom = mgr.bottomRefModel
     let df = mgr.computeDF(bottom)
     # Independence model A:B:C has DF = (2-1) + (2-1) + (2-1) = 3
     check df == 3
 
   test "compute delta DF":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let ddf = mgr.computeDDF(mgr.bottomRefModel)
     # DDF = DF(top) - DF(model) = 7 - 3 = 4
     check ddf == 4
@@ -270,7 +270,7 @@ suite "Model creation from string":
     discard varList.add(newVariable("B", "B", Cardinality(2)))
     discard varList.add(newVariable("C", "C", Cardinality(2)))
 
-    var inputTable = initTable(varList.keySize, 8)
+    var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
@@ -282,19 +282,19 @@ suite "Model creation from string":
     inputTable.sort()
 
   test "create model AB:BC":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let model = mgr.makeModel("AB:BC")
     check model.relationCount == 2
     check model.printName(varList) == "AB:BC"
 
   test "create model A:B:C":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let model = mgr.makeModel("A:B:C")
     check model.relationCount == 3
     check model.printName(varList) == "A:B:C"
 
   test "create saturated model ABC":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let model = mgr.makeModel("ABC")
     check model.relationCount == 1
     check model.printName(varList) == "ABC"
@@ -307,7 +307,7 @@ suite "Search one level":
     discard varList.add(newVariable("B", "B", Cardinality(2)))
     discard varList.add(newVariable("C", "C", Cardinality(2)))
 
-    var inputTable = initTable(varList.keySize, 8)
+    var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
@@ -319,14 +319,14 @@ suite "Search one level":
     inputTable.sort()
 
   test "search up from bottom generates parents":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
     let children = mgr.searchOneLevel(mgr.bottomRefModel)
     # From A:B:C, going up should find models like AB:C, AC:B, BC:A
     check children.len > 0
 
   test "search down from top generates children":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Descending)
     let children = mgr.searchOneLevel(mgr.topRefModel)
     # From ABC, going down should find models like AB:C, etc.
@@ -339,7 +339,7 @@ suite "Model caching":
     discard varList.add(newVariable("A", "A", Cardinality(2)))
     discard varList.add(newVariable("B", "B", Cardinality(2)))
 
-    var inputTable = initTable(varList.keySize, 4)
+    var inputTable = initContingencyTable(varList.keySize, 4)
     for a in 0..<2:
       for b in 0..<2:
         var k = newKey(varList.keySize)
@@ -349,13 +349,13 @@ suite "Model caching":
     inputTable.sort()
 
   test "models are cached":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let m1 = mgr.makeModel("AB")
     let m2 = mgr.makeModel("AB")
     check m1 == m2  # Same cached model
 
   test "different models are distinct":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let m1 = mgr.makeModel("AB")
     let m2 = mgr.makeModel("A:B")
     check m1 != m2

@@ -21,7 +21,7 @@ proc createTestData(): (VariableList, ContingencyTable) =
   discard varList.add(initVariable("B", "B", Cardinality(2)))
   discard varList.add(initVariable("C", "C", Cardinality(2)))
 
-  var table = initTable(varList.keySize)
+  var table = initContingencyTable(varList.keySize)
   # Add some test data
   for a in 0..1:
     for b in 0..1:

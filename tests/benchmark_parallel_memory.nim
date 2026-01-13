@@ -36,7 +36,7 @@ proc loadPrimesDataset(filename: string): (VariableList, coretable.Table) =
       k.setValue(varList, VariableIndex(i), row[i].getInt() - 1)
     freqMap.mgetOrPut(k, 0.0) += 1.0
 
-  var tbl = coretable.initTable(varList.keySize, freqMap.len)
+  var tbl = coretable.initContingencyTable(varList.keySize, freqMap.len)
   for k, count in freqMap:
     tbl.add(k, count)
   tbl.sort()
@@ -62,7 +62,7 @@ var gInputTable: coretable.Table
 proc processWithNewManager(item: WorkItem): WorkResult {.gcsafe.} =
   ## Creates new VBManager inside thread
   {.cast(gcsafe).}:
-    var mgr = newVBManager(gVarList, gInputTable)
+    var mgr = initVBManager(gVarList, gInputTable)
     let search = initLooplessSearch(mgr, item.width, 10)
     let neighbors = search.generateNeighbors(item.seed)
     result.evaluated = neighbors.len
@@ -91,7 +91,7 @@ proc main() =
   echo ""
 
   # Create seeds
-  var mgr = newVBManager(gVarList, gInputTable)
+  var mgr = initVBManager(gVarList, gInputTable)
   let bottomModel = mgr.bottomRefModel
   var items: seq[WorkItem]
 
@@ -108,7 +108,7 @@ proc main() =
   let seqStart = getMonoTime()
   var seqTotal = 0
   for item in items:
-    var localMgr = newVBManager(gVarList, gInputTable)
+    var localMgr = initVBManager(gVarList, gInputTable)
     let localSearch = initLooplessSearch(localMgr, item.width, 10)
     let neighbors = localSearch.generateNeighbors(item.seed)
     seqTotal += neighbors.len
@@ -136,7 +136,7 @@ proc main() =
   echo "Test 3: VBManager creation timing"
   let createStart = getMonoTime()
   for _ in 0..<items.len:
-    var testMgr = newVBManager(gVarList, gInputTable)
+    var testMgr = initVBManager(gVarList, gInputTable)
     discard testMgr.bottomRefModel
   let createMs = float64(inNanoseconds(getMonoTime() - createStart)) / 1_000_000.0
   echo &"  Sequential creation ({items.len}x): {createMs:.1f}ms"

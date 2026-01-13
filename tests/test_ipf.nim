@@ -14,7 +14,7 @@ import ../src/occam/math/ipf
 
 # Helper to create a simple table with given probabilities
 proc makeSimpleTable(varList: VariableList; probs: seq[float64]): Table =
-  result = initTable(varList.keySize)
+  result = initContingencyTable(varList.keySize)
   var idx = 0
   # Enumerate all combinations
   let card0 = varList[VariableIndex(0)].cardinality.toInt
@@ -202,7 +202,7 @@ suite "IPF Edge Cases":
     discard varList.add(newVariable("B", "B", Cardinality(3)))
 
     # Sparse input - only some cells have data
-    var inputTable = initTable(varList.keySize)
+    var inputTable = initContingencyTable(varList.keySize)
     inputTable.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)]), 0.5)
     inputTable.add(varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 1)]), 0.3)
     inputTable.add(varList.buildKey(@[(VariableIndex(0), 2), (VariableIndex(1), 2)]), 0.2)

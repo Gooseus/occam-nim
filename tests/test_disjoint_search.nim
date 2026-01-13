@@ -74,7 +74,7 @@ suite "Disjoint search up (neutral)":
     discard varList.add(newVariable("C", "C", Cardinality(2)))
     discard varList.add(newVariable("D", "D", Cardinality(2)))
 
-    var inputTable = initTable(varList.keySize, 16)
+    var inputTable = initContingencyTable(varList.keySize, 16)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
@@ -88,7 +88,7 @@ suite "Disjoint search up (neutral)":
     inputTable.sort()
 
   test "search up from bottom finds only disjoint neighbors":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initDisjointSearch(mgr)
     let neighbors = search.generateNeighbors(mgr.bottomRefModel)
@@ -98,7 +98,7 @@ suite "Disjoint search up (neutral)":
       check isDisjointModel(model, varList)
 
   test "disjoint up from A:B:C:D yields pairwise merges":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initDisjointSearch(mgr)
     let neighbors = search.generateNeighbors(mgr.bottomRefModel)
@@ -117,7 +117,7 @@ suite "Disjoint search down (neutral)":
     discard varList.add(newVariable("C", "C", Cardinality(2)))
     discard varList.add(newVariable("D", "D", Cardinality(2)))
 
-    var inputTable = initTable(varList.keySize, 16)
+    var inputTable = initContingencyTable(varList.keySize, 16)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
@@ -131,7 +131,7 @@ suite "Disjoint search down (neutral)":
     inputTable.sort()
 
   test "search down from top finds only disjoint neighbors":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Descending)
     let search = initDisjointSearch(mgr)
     let neighbors = search.generateNeighbors(mgr.topRefModel)
@@ -141,7 +141,7 @@ suite "Disjoint search down (neutral)":
       check isDisjointModel(model, varList)
 
   test "disjoint down from AB:CD yields single splits":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Descending)
     let search = initDisjointSearch(mgr)
 
@@ -166,7 +166,7 @@ suite "Disjoint search directed":
     discard varList.add(newVariable("C", "C", Cardinality(2)))
     discard varList.add(newVariable("Z", "Z", Cardinality(2), isDependent = true))
 
-    var inputTable = initTable(varList.keySize, 16)
+    var inputTable = initContingencyTable(varList.keySize, 16)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
@@ -180,7 +180,7 @@ suite "Disjoint search directed":
     inputTable.sort()
 
   test "directed disjoint search up maintains DV":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initDisjointSearch(mgr)
     let neighbors = search.generateNeighbors(mgr.bottomRefModel)
@@ -191,7 +191,7 @@ suite "Disjoint search directed":
       check isDisjointModel(model, varList)
 
   test "directed disjoint search down maintains DV":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Descending)
     let search = initDisjointSearch(mgr)
     let neighbors = search.generateNeighbors(mgr.topRefModel)
@@ -210,7 +210,7 @@ suite "Full disjoint search traversal":
     discard varList.add(newVariable("C", "C", Cardinality(2)))
     discard varList.add(newVariable("D", "D", Cardinality(2)))
 
-    var inputTable = initTable(varList.keySize, 16)
+    var inputTable = initContingencyTable(varList.keySize, 16)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
@@ -224,7 +224,7 @@ suite "Full disjoint search traversal":
     inputTable.sort()
 
   test "multi-level disjoint search up explores all disjoint models":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initDisjointSearch(mgr)
 

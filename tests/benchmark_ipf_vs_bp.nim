@@ -42,7 +42,7 @@ proc generateRandomTable(varList: VariableList; seed: int = 42): coretable.Table
   for i in 0..<varList.len:
     totalStates *= varList[VariableIndex(i)].cardinality.toInt
 
-  result = coretable.initTable(varList.keySize, totalStates)
+  result = coretable.initContingencyTable(varList.keySize, totalStates)
 
   # Use simple LCG for reproducibility
   var rng = seed

@@ -87,7 +87,7 @@ suite "Four variables - uniform cardinality":
     check varList.stateSpace == 16  # 2^4
 
   test "independence model structure":
-    var table = initTable(varList.keySize, 16)
+    var table = initContingencyTable(varList.keySize, 16)
     for i in 0..<16:
       var k = newKey(varList.keySize)
       k.setValue(varList, VariableIndex(0), i and 1)
@@ -97,7 +97,7 @@ suite "Four variables - uniform cardinality":
       table.add(k, 10.0)
     table.sort()
 
-    var mgr = newVBManager(varList, table)
+    var mgr = initVBManager(varList, table)
 
     # Check reference models
     check mgr.bottomRefModel.relationCount == 4  # A:B:C:D
@@ -113,7 +113,7 @@ suite "Four variables - uniform cardinality":
     let samples = graphModel.generateSamples(3000)
     var table = graphModel.samplesToTable(samples)
 
-    var mgr = newVBManager(varList, table)
+    var mgr = initVBManager(varList, table)
 
     # Compare models
     let bicIndep = mgr.computeBIC(mgr.makeModel("A:B:C:D"))
@@ -136,7 +136,7 @@ suite "Four variables - uniform cardinality":
     let samples = graphModel.generateSamples(2000)
     var table = graphModel.samplesToTable(samples)
 
-    var mgr = newVBManager(varList, table)
+    var mgr = initVBManager(varList, table)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initLooplessSearch(mgr, width = 10)
 
@@ -160,7 +160,7 @@ suite "Four variables - mixed cardinality":
 
   test "DF calculations with mixed cardinality":
     # Create uniform data
-    var table = initTable(varList.keySize, 48)
+    var table = initContingencyTable(varList.keySize, 48)
     for a in 0..<2:
       for b in 0..<3:
         for c in 0..<2:
@@ -173,7 +173,7 @@ suite "Four variables - mixed cardinality":
             table.add(k, 10.0)
     table.sort()
 
-    var mgr = newVBManager(varList, table)
+    var mgr = initVBManager(varList, table)
 
     # Independence model DF = (2-1) + (3-1) + (2-1) + (4-1) = 1+2+1+3 = 7
     let dfIndep = mgr.computeDF(mgr.bottomRefModel)
@@ -194,7 +194,7 @@ suite "Four variables - mixed cardinality":
     let samples = graphModel.generateSamples(5000)
     var table = graphModel.samplesToTable(samples)
 
-    var mgr = newVBManager(varList, table)
+    var mgr = initVBManager(varList, table)
 
     let bicIndep = mgr.computeBIC(mgr.bottomRefModel)
     let bicChain = mgr.computeBIC(mgr.makeModel("AB:BC:CD"))
@@ -226,7 +226,7 @@ suite "Five variables":
     let samples = graphModel.generateSamples(5000)
     var table = graphModel.samplesToTable(samples)
 
-    var mgr = newVBManager(varList, table)
+    var mgr = initVBManager(varList, table)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initLooplessSearch(mgr, width = 10)
 
@@ -245,7 +245,7 @@ suite "Five variables":
     let samples = graphModel.generateSamples(8000)
     var table = graphModel.samplesToTable(samples)
 
-    var mgr = newVBManager(varList, table)
+    var mgr = initVBManager(varList, table)
 
     let bicIndep = mgr.computeBIC(mgr.makeModel("A:B:C:D:E"))
     let bicChain = mgr.computeBIC(mgr.makeModel("AB:BC:CD:DE"))
@@ -293,7 +293,7 @@ suite "Larger cardinalities":
     let samples = graphModel.generateSamples(10000)
     var table = graphModel.samplesToTable(samples)
 
-    var mgr = newVBManager(varList, table)
+    var mgr = initVBManager(varList, table)
 
     let bicIndep = mgr.computeBIC(mgr.makeModel("A:B:C"))
     let bicChain = mgr.computeBIC(mgr.makeModel("AB:BC"))
@@ -321,7 +321,7 @@ suite "Directed system - multiple IVs":
 
   test "predictive model search":
     # Create data where Z depends on X1 and X2 (not X3)
-    var table = initTable(varList.keySize, 24)
+    var table = initContingencyTable(varList.keySize, 24)
     for x1 in 0..<2:
       for x2 in 0..<2:
         for x3 in 0..<3:
@@ -337,7 +337,7 @@ suite "Directed system - multiple IVs":
             table.add(k, count)
     table.sort()
 
-    var mgr = newVBManager(varList, table)
+    var mgr = initVBManager(varList, table)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initLooplessSearch(mgr, width = 10)
 
@@ -369,7 +369,7 @@ suite "Stress test - 6 variables":
     let samples = graphModel.generateSamples(10000)
     var table = graphModel.samplesToTable(samples)
 
-    var mgr = newVBManager(varList, table)
+    var mgr = initVBManager(varList, table)
 
     let bicIndep = mgr.computeBIC(mgr.bottomRefModel)
     let bicChain = mgr.computeBIC(mgr.makeModel("AB:BC:CD:DE:EF"))
@@ -388,7 +388,7 @@ suite "Stress test - 6 variables":
     let samples = graphModel.generateSamples(8000)
     var table = graphModel.samplesToTable(samples)
 
-    var mgr = newVBManager(varList, table)
+    var mgr = initVBManager(varList, table)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initLooplessSearch(mgr, width = 15)
 

@@ -10,12 +10,12 @@ import ../src/occam/core/table
 
 suite "Table creation":
   test "create empty table":
-    let t = initTable(1)
+    let t = initContingencyTable(1)
     check t.len == 0
     check t.keySize == 1
 
   test "create table with capacity":
-    let t = initTable(2, capacity = 100)
+    let t = initContingencyTable(2, capacity = 100)
     check t.len == 0
     check t.keySize == 2
 
@@ -26,13 +26,13 @@ suite "Table add operations":
     discard varList.add(newVariable("B", "B", Cardinality(2)))
 
   test "add single tuple":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     let k = varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 0)])
     t.add(k, 10.0)
     check t.len == 1
 
   test "add multiple tuples":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     let k1 = varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)])
     let k2 = varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 1)])
     let k3 = varList.buildKey(@[(VariableIndex(0), 2), (VariableIndex(1), 0)])
@@ -42,7 +42,7 @@ suite "Table add operations":
     check t.len == 3
 
   test "add tuple with key-value pair":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     let k = varList.buildKey(@[(VariableIndex(0), 2), (VariableIndex(1), 1)])
     t.add(k, 42.0)
     check t.len == 1
@@ -54,7 +54,7 @@ suite "Table sort and find":
     discard varList.add(newVariable("B", "B", Cardinality(4)))
 
   test "sort puts tuples in key order":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     # Add in reverse order
     let k3 = varList.buildKey(@[(VariableIndex(0), 3), (VariableIndex(1), 0)])
     let k1 = varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 0)])
@@ -72,7 +72,7 @@ suite "Table sort and find":
       prev = t[i].key
 
   test "find returns correct index after sort":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     let k1 = varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 1)])
     let k2 = varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 2)])
     let k3 = varList.buildKey(@[(VariableIndex(0), 2), (VariableIndex(1), 3)])
@@ -86,7 +86,7 @@ suite "Table sort and find":
     check t[found.get].value == 200.0
 
   test "find returns none for missing key":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     let k1 = varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)])
     let k2 = varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 1)])
     t.add(k1, 100.0)
@@ -96,7 +96,7 @@ suite "Table sort and find":
     check found.isNone
 
   test "find works with single element":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     let k = varList.buildKey(@[(VariableIndex(0), 2), (VariableIndex(1), 2)])
     t.add(k, 42.0)
     t.sort()
@@ -112,7 +112,7 @@ suite "Table value operations":
     discard varList.add(newVariable("B", "B", Cardinality(2)))
 
   test "sum returns total of all values":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     let k1 = varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)])
     let k2 = varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 1)])
     let k3 = varList.buildKey(@[(VariableIndex(0), 2), (VariableIndex(1), 0)])
@@ -123,7 +123,7 @@ suite "Table value operations":
     check t.sum == 60.0
 
   test "normalize converts counts to probabilities":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     let k1 = varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)])
     let k2 = varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 0)])
     t.add(k1, 25.0)
@@ -145,7 +145,7 @@ suite "Table value operations":
     check foundK1 and foundK2
 
   test "normalize handles zero total":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     let k = varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)])
     t.add(k, 0.0)
 
@@ -161,7 +161,7 @@ suite "Table projection":
     discard varList.add(newVariable("B", "B", Cardinality(2)))
 
   test "project to single variable":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     # A=0, B=0 -> 10
     # A=0, B=1 -> 20
     # A=1, B=0 -> 30
@@ -180,7 +180,7 @@ suite "Table projection":
     check projected.sum == 100.0
 
   test "project preserves total":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     t.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)]), 15.0)
     t.add(varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 1)]), 25.0)
     t.add(varList.buildKey(@[(VariableIndex(0), 2), (VariableIndex(1), 0)]), 35.0)
@@ -193,7 +193,7 @@ suite "Table projection":
     check abs(projB.sum - 75.0) < 1e-10
 
   test "project to all variables returns copy":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     t.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)]), 50.0)
     t.add(varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 1)]), 50.0)
     t.sort()
@@ -210,7 +210,7 @@ suite "Table sumInto":
     discard varList.add(newVariable("B", "B", Cardinality(2)))
 
   test "sumInto combines matching keys":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     let k = varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 0)])
     t.add(k, 10.0)
     t.add(k, 20.0)  # Same key
@@ -222,7 +222,7 @@ suite "Table sumInto":
     check t[0].value == 60.0
 
   test "sumInto preserves distinct keys":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     let k1 = varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)])
     let k2 = varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 1)])
     t.add(k1, 10.0)
@@ -233,7 +233,7 @@ suite "Table sumInto":
     check t.len == 2
 
   test "sumInto works on empty table":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     t.sumInto()
     check t.len == 0
 
@@ -243,7 +243,7 @@ suite "Table iteration":
     discard varList.add(newVariable("A", "A", Cardinality(3)))
 
   test "iterate over tuples":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     t.add(varList.buildKey(@[(VariableIndex(0), 0)]), 1.0)
     t.add(varList.buildKey(@[(VariableIndex(0), 1)]), 2.0)
     t.add(varList.buildKey(@[(VariableIndex(0), 2)]), 3.0)
@@ -255,7 +255,7 @@ suite "Table iteration":
     check total == 6.0
 
   test "iterate with indices":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     t.add(varList.buildKey(@[(VariableIndex(0), 0)]), 10.0)
     t.add(varList.buildKey(@[(VariableIndex(0), 1)]), 20.0)
 
@@ -275,7 +275,7 @@ suite "Table with multiple segments":
   test "table handles multi-segment keys":
     check varList.keySize == 2
 
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     var k1 = newKey(varList.keySize)
     k1.setValue(varList, VariableIndex(0), 1)
     k1.setValue(varList, VariableIndex(16), 2)
@@ -304,31 +304,31 @@ suite "Table edge cases and error paths":
     discard varList.add(newVariable("B", "B", Cardinality(2)))
 
   test "should handle find on empty table":
-    let t = initTable(varList.keySize)
+    let t = initContingencyTable(varList.keySize)
     let k = varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 0)])
     check t.find(k).isNone
 
   test "should handle sum on empty table":
-    let t = initTable(varList.keySize)
+    let t = initContingencyTable(varList.keySize)
     check t.sum == 0.0
 
   test "should handle project on empty table":
-    let t = initTable(varList.keySize)
+    let t = initContingencyTable(varList.keySize)
     let projected = t.project(varList, @[VariableIndex(0)])
     check projected.len == 0
 
   test "should handle normalize on empty table":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     t.normalize()  # Should not crash
     check t.len == 0
 
   test "should handle sort on empty table":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     t.sort()  # Should not crash
     check t.len == 0
 
   test "should handle project to empty variable list":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     t.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)]), 10.0)
     t.add(varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 1)]), 20.0)
     t.sort()
@@ -339,7 +339,7 @@ suite "Table edge cases and error paths":
     check abs(projected.sum - 30.0) < 1e-10
 
   test "should handle table with all zero values":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     t.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)]), 0.0)
     t.add(varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 1)]), 0.0)
     t.sort()
@@ -349,14 +349,14 @@ suite "Table edge cases and error paths":
     check t.len == 2
 
   test "should handle table with negative values":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     t.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)]), -10.0)
     t.add(varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 1)]), 20.0)
 
     check t.sum == 10.0
 
   test "should handle very small values":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     t.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)]), 1e-300)
     t.add(varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 1)]), 1e-300)
 
@@ -365,7 +365,7 @@ suite "Table edge cases and error paths":
     check abs(t.sum - 1.0) < 1e-10
 
   test "should handle duplicate keys correctly with sumInto":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     let k = varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)])
     # Add same key 100 times
     for i in 0..<100:
@@ -378,7 +378,7 @@ suite "Table edge cases and error paths":
     check t[0].value == 100.0
 
   test "should handle single-tuple table operations":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     let k = varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 0)])
     t.add(k, 42.0)
     t.sort()
@@ -393,7 +393,7 @@ suite "Table edge cases and error paths":
     check projected.len == 1
 
   test "should handle repeated sort calls":
-    var t = initTable(varList.keySize)
+    var t = initContingencyTable(varList.keySize)
     t.add(varList.buildKey(@[(VariableIndex(0), 2), (VariableIndex(1), 1)]), 30.0)
     t.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)]), 10.0)
     t.add(varList.buildKey(@[(VariableIndex(0), 1), (VariableIndex(1), 1)]), 20.0)

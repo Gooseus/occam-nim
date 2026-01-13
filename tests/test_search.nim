@@ -53,7 +53,7 @@ suite "Loopless search up (neutral)":
     discard varList.add(newVariable("B", "B", Cardinality(2)))
     discard varList.add(newVariable("C", "C", Cardinality(2)))
 
-    var inputTable = initTable(varList.keySize, 8)
+    var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
@@ -65,7 +65,7 @@ suite "Loopless search up (neutral)":
     inputTable.sort()
 
   test "search from bottom finds loopless parents":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initLooplessSearch(mgr)
     let parents = search.generateNeighbors(mgr.bottomRefModel)
@@ -75,7 +75,7 @@ suite "Loopless search up (neutral)":
       check not hasLoops(model, varList)
 
   test "parents of A:B:C include AB:C, AC:B, BC:A":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initLooplessSearch(mgr)
     let parents = search.generateNeighbors(mgr.bottomRefModel)
@@ -92,7 +92,7 @@ suite "Loopless search down (neutral)":
     discard varList.add(newVariable("B", "B", Cardinality(2)))
     discard varList.add(newVariable("C", "C", Cardinality(2)))
 
-    var inputTable = initTable(varList.keySize, 8)
+    var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
@@ -104,7 +104,7 @@ suite "Loopless search down (neutral)":
     inputTable.sort()
 
   test "search from top finds loopless children":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Descending)
     let search = initLooplessSearch(mgr)
     let children = search.generateNeighbors(mgr.topRefModel)
@@ -114,7 +114,7 @@ suite "Loopless search down (neutral)":
       check not hasLoops(model, varList)
 
   test "children of ABC are AB:C, AC:B, BC:A":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Descending)
     let search = initLooplessSearch(mgr)
     let children = search.generateNeighbors(mgr.topRefModel)
@@ -131,7 +131,7 @@ suite "Loopless search directed":
     discard varList.add(newVariable("B", "B", Cardinality(2)))
     discard varList.add(newVariable("Z", "Z", Cardinality(2), isDependent = true))
 
-    var inputTable = initTable(varList.keySize, 8)
+    var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for z in 0..<2:
@@ -143,7 +143,7 @@ suite "Loopless search directed":
     inputTable.sort()
 
   test "search up from bottom (directed)":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initLooplessSearch(mgr)
     let parents = search.generateNeighbors(mgr.bottomRefModel)
@@ -154,7 +154,7 @@ suite "Loopless search directed":
       check model.containsDependent(varList)
 
   test "search down from top (directed)":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Descending)
     let search = initLooplessSearch(mgr)
     let children = search.generateNeighbors(mgr.topRefModel)
@@ -171,7 +171,7 @@ suite "Search level iteration":
     discard varList.add(newVariable("B", "B", Cardinality(2)))
     discard varList.add(newVariable("C", "C", Cardinality(2)))
 
-    var inputTable = initTable(varList.keySize, 8)
+    var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
@@ -183,7 +183,7 @@ suite "Search level iteration":
     inputTable.sort()
 
   test "multiple levels of search from bottom":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initLooplessSearch(mgr)
 
@@ -203,7 +203,7 @@ suite "Search level iteration":
       check not m.isIndependenceModel(varList)
 
   test "multiple levels of search from top":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Descending)
     let search = initLooplessSearch(mgr)
 
@@ -231,7 +231,7 @@ suite "Model selection by statistics":
     discard varList.add(newVariable("C", "C", Cardinality(2)))
 
     # Non-uniform data to create interesting statistics
-    var inputTable = initTable(varList.keySize, 8)
+    var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
@@ -245,7 +245,7 @@ suite "Model selection by statistics":
     inputTable.sort()
 
   test "models sorted by DF":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initLooplessSearch(mgr)
     let neighbors = search.generateNeighbors(mgr.bottomRefModel)
@@ -268,7 +268,7 @@ suite "Search width limiting":
     discard varList.add(newVariable("C", "C", Cardinality(2)))
     discard varList.add(newVariable("D", "D", Cardinality(2)))
 
-    var inputTable = initTable(varList.keySize, 16)
+    var inputTable = initContingencyTable(varList.keySize, 16)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
@@ -282,7 +282,7 @@ suite "Search width limiting":
     inputTable.sort()
 
   test "can limit search width":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initLooplessSearch(mgr, width = 3)
     let neighbors = search.generateNeighbors(mgr.bottomRefModel)
@@ -341,7 +341,7 @@ suite "Loopless search with 4 variables":
     discard varList.add(newVariable("C", "C", Cardinality(2)))
     discard varList.add(newVariable("D", "D", Cardinality(2)))
 
-    var inputTable = initTable(varList.keySize, 16)
+    var inputTable = initContingencyTable(varList.keySize, 16)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
@@ -355,7 +355,7 @@ suite "Loopless search with 4 variables":
     inputTable.sort()
 
   test "parents from independence model":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initLooplessSearch(mgr)
     let parents = search.generateNeighbors(mgr.bottomRefModel)
@@ -366,7 +366,7 @@ suite "Loopless search with 4 variables":
       check not hasLoops(p, varList)
 
   test "all generated neighbors are loopless":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(Direction.Ascending)
     let search = initLooplessSearch(mgr)
 

@@ -39,7 +39,7 @@ proc loadPrimesDataset(filename: string): (VariableList, coretable.Table) =
     else:
       freqMap[k] = 1.0
 
-  var tbl = coretable.initTable(varList.keySize, freqMap.len)
+  var tbl = coretable.initContingencyTable(varList.keySize, freqMap.len)
   for k, count in freqMap:
     tbl.add(k, count)
   tbl.sort()
@@ -69,14 +69,14 @@ proc main() =
   echo "Test 1: VBManager creation time"
   let t1Start = getMonoTime()
   for i in 0..<10:
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let bottomModel = mgr.bottomRefModel
     discard mgr.computeAIC(bottomModel)
   let t1Ms = float64(inNanoseconds(getMonoTime() - t1Start)) / 1_000_000.0 / 10.0
   echo &"  Single VBManager creation + one AIC: {t1Ms:.1f}ms"
 
   # Test 2: AIC computation only (reuse manager) - wall clock
-  var mgr = newVBManager(varList, inputTable)
+  var mgr = initVBManager(varList, inputTable)
   let bottomModel = mgr.bottomRefModel
 
   echo ""
@@ -110,7 +110,7 @@ proc main() =
   # With new manager each time
   let t4NewMgrStart = getMonoTime()
   for i in 0..<5:
-    var newMgr = newVBManager(varList, inputTable)
+    var newMgr = initVBManager(varList, inputTable)
     let newSearch = initLooplessSearch(newMgr, 5, 10)
     let newNeighbors = newSearch.generateNeighbors(bottomModel)
     for n in newNeighbors:
@@ -158,7 +158,7 @@ proc main() =
   # Sequential with NEW manager each seed (simulates parallel)
   let t5IsolatedStart = getMonoTime()
   for seed in seeds:
-    var isolatedMgr = newVBManager(varList, inputTable)
+    var isolatedMgr = initVBManager(varList, inputTable)
     let s = initLooplessSearch(isolatedMgr, 5, 10)
     for n in s.generateNeighbors(seed):
       discard isolatedMgr.computeAIC(n)

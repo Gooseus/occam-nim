@@ -34,7 +34,7 @@ proc loadPrimesDataset(filename: string): (VariableList, coretable.Table) =
       k.setValue(varList, VariableIndex(i), row[i].getInt() - 1)
     freqMap.mgetOrPut(k, 0.0) += 1.0
 
-  var tbl = coretable.initTable(varList.keySize, freqMap.len)
+  var tbl = coretable.initContingencyTable(varList.keySize, freqMap.len)
   for k, count in freqMap:
     tbl.add(k, count)
   tbl.sort()
@@ -50,7 +50,7 @@ var gResults: seq[float64]
 proc evaluateModelAt(idx: int; model: Model) {.gcsafe.} =
   ## Evaluate single model in parallel
   {.cast(gcsafe).}:
-    var mgr = newVBManager(gVarList, gInputTable)
+    var mgr = initVBManager(gVarList, gInputTable)
     gResults[idx] = mgr.computeAIC(model)
 
 
@@ -74,7 +74,7 @@ proc main() =
   echo ""
 
   # Generate models to evaluate
-  var mgr = newVBManager(gVarList, gInputTable)
+  var mgr = initVBManager(gVarList, gInputTable)
   let bottomModel = mgr.bottomRefModel
   let search = initLooplessSearch(mgr, 10, 10)
   var models: seq[Model] = @[bottomModel]

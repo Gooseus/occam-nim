@@ -20,45 +20,45 @@ suite "Long-Model Notation":
     discard varList.add(newVariable("D", "D", Cardinality(2)))
 
     # Create minimal input data
-    var inputTable = initTable(varList.keySize)
+    var inputTable = initContingencyTable(varList.keySize)
     inputTable.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0), (VariableIndex(2), 0), (VariableIndex(3), 0)]), 1.0)
     inputTable.sort()
     inputTable.normalize()
 
   test "short notation AB:BC stays the same":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let model = mgr.makeModel("AB:BC")
     check model.relationCount == 2
     check model.printName(varList) == "AB:BC"
 
   test "long notation A:B:C:AB:BC simplifies to AB:BC":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let model = mgr.makeModel("A:B:C:AB:BC")
     # After simplification, should only have AB and BC (maximal relations)
     check model.relationCount == 2
     check model.printName(varList) == "AB:BC"
 
   test "long notation A:B:C:D stays as independence model":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let model = mgr.makeModel("A:B:C:D")
     check model.relationCount == 4
     check model.printName(varList) == "A:B:C:D"
 
   test "long notation A:B:AB simplifies to AB":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let model = mgr.makeModel("A:B:AB")
     check model.relationCount == 1
     check model.printName(varList) == "AB"
 
   test "long notation with all components":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let model = mgr.makeModel("A:B:C:AB:AC:BC:ABC")
     # All subsumed by ABC
     check model.relationCount == 1
     check model.printName(varList) == "ABC"
 
   test "mixed order still works":
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     let model = mgr.makeModel("AB:A:BC:B:C")
     check model.relationCount == 2
     check model.printName(varList) == "AB:BC"

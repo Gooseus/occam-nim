@@ -28,7 +28,7 @@ proc makeRandomTable(varList: VariableList; seed: int = 42): coretable.Table =
   for i in 0..<varList.len:
     totalStates *= varList[VariableIndex(i)].cardinality.toInt
 
-  result = coretable.initTable(varList.keySize, totalStates)
+  result = coretable.initContingencyTable(varList.keySize, totalStates)
 
   var rng = seed
   proc nextRand(): float64 =
@@ -114,7 +114,7 @@ proc runBenchmark(numVars, cardinality, numModels: int): BenchResult =
     result.stateSpace *= cardinality
 
   # Warm up
-  var mgr = newVBManager(varList, inputTable)
+  var mgr = initVBManager(varList, inputTable)
   for m in models[0..min(2, models.len-1)]:
     discard mgr.computeAIC(m)
   discard parallelComputeAIC(varList, inputTable, models[0..min(2, models.len-1)])
