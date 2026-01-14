@@ -7,17 +7,78 @@
 > [!WARNING]
 > **Work in Progress** - The core library and CLI are functional and validated against the original OCCAM, but APIs may change before v1.0.
 
-A Nim library for Reconstructability Analysis (RA) - a methodology for discrete multivariate modeling based on information theory and graph theory.
+A Nim implementation of **Reconstructability Analysis (RA)** — a data analysis method for discovering structure in categorical datasets using information theory and graph theory.
 
-## Overview
+## What is Reconstructability Analysis?
+
+RA is a **discrete multivariate modeling** methodology that finds which variables in your data are related, which are independent, and how they combine to predict outcomes. It's part of the family of [graphical models](https://en.wikipedia.org/wiki/Graphical_model) (like Bayesian networks and log-linear models), but with unique capabilities for exploratory analysis.
+
+**Key idea:** Instead of assuming a model structure upfront, RA *searches* for the simplest model that captures the important relationships in your data — embodying Occam's Razor.
+
+### When to Use RA
+
+- **Exploratory data analysis** — Discover which variables matter and how they interact
+- **Feature selection** — Find the minimal set of predictors for classification
+- **Structure discovery** — Identify conditional independencies and causal hypotheses
+- **Interpretable modeling** — Build models you can understand and explain (not black boxes)
+- **Categorical/survey data** — Designed for discrete variables (continuous data can be binned)
+
+### How It Works
+
+RA represents variable relationships using **model notation**. For example, with variables A, B, C:
+
+| Notation | Meaning | Structure |
+|----------|---------|-----------|
+| `A:B:C` | Complete independence | No relationships |
+| `AB:C` | A and B related, C independent | One pair |
+| `AB:BC` | Chain: A—B—C | B mediates A and C |
+| `AB:AC:BC` | Triangle (loop) | All pairs related |
+| `ABC` | Saturated | Full 3-way interaction |
+
+RA searches through this space to find the model with the best trade-off between fit and complexity (using AIC, BIC, or other criteria).
+
+### Learn More
+
+**Introductory resources:**
+- [An Overview of Reconstructability Analysis](https://pdxscholar.library.pdx.edu/sysc_fac/22/) — Zwick (2004), the definitive introduction ([PDF](docs/papers/zwick-2004-overview-of-ra.pdf))
+- [Introduction to Reconstructability Analysis](https://pdxscholar.library.pdx.edu/sysc_fac/125/) — Zwick (2018), accessible presentation ([PDF](docs/papers/zwick-2018-intro-to-ra.pdf))
+- [OCCAM Documentation](https://occam.readthedocs.io/) — User manual for the original OCCAM software
+- [Original OCCAM Project](https://github.com/occam-ra/occam) — C++ implementation from Portland State University
+
+**Applied examples:**
+- [Gene-Gene Interactions in Human Diseases](https://pdxscholar.library.pdx.edu/sysc_fac/14/) — Shervais et al. (2010), detecting epistasis ([PDF](docs/papers/shervais-2010-gene-gene-interactions.pdf))
+- [RA and Its OCCAM Implementation](https://pdxscholar.library.pdx.edu/sysc_fac/158/) — Zwick (2020), tutorial with examples ([PDF](docs/papers/zwick-2020-ra-and-occam.pdf))
+
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Library Usage](#library-usage)
+- [CLI Usage](#cli-usage)
+- [CLI Commands](#cli-commands)
+- [Web Server](#web-server)
+- [MCP Server (AI Integration)](#mcp-server-ai-integration)
+- [Testing](#testing)
+- [JSON Input Format](#json-input-format)
+- [Model Notation](#model-notation)
+- [Statistics](#statistics)
+- [Project Structure](#project-structure)
+- [References](#references)
+
+---
+
+## Features
 
 OCCAM-Nim provides:
-- **Model fitting**: Compute entropy, transmission, degrees of freedom, likelihood ratio, AIC, BIC
-- **Model search**: Find optimal models using loopless, full, disjoint, or chain search strategies
-- **Decomposable models**: Exact inference via junction tree and belief propagation
-- **Loop models**: Iterative Proportional Fitting (IPF) for non-decomposable models
-- **Directed systems**: Conditional entropy, confusion matrix, prediction accuracy
-- **Data preprocessing**: Binning, discretization, format conversion
+- **Model fitting** — Entropy, transmission, degrees of freedom, likelihood ratio, AIC, BIC
+- **Model search** — Loopless, full, disjoint, and chain search strategies with parallel execution
+- **Decomposable models** — Exact inference via junction tree and belief propagation
+- **Loop models** — Iterative Proportional Fitting (IPF) for non-decomposable structures
+- **Directed systems** — Conditional entropy, confusion matrix, prediction accuracy
+- **Data preprocessing** — Binning, discretization, CSV/JSON format conversion
+- **Multiple interfaces** — Library, CLI, web server, and MCP server for AI integration
 
 ## Installation
 
@@ -30,7 +91,7 @@ nimble install occam
 ### From Source
 
 ```bash
-git clone https://github.com/yourrepo/occam-nim
+git clone https://github.com/Gooseus/occam-nim
 cd occam-nim
 nimble install -d   # Install dependencies
 nimble test         # Run tests
