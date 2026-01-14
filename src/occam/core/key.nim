@@ -20,11 +20,6 @@ func initKey*(size: int): Key =
   for i in 0..<size:
     result.segments[i] = DontCare
 
-# Deprecated alias
-func newKey*(size: int): Key {.deprecated: "Use initKey instead".} =
-  initKey(size)
-
-
 func len*(k: Key): int {.inline.} =
   ## Number of segments in the key
   k.segments.len

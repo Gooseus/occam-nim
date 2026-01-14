@@ -18,7 +18,7 @@ proc makeTestVarList(n: int; cardinality: int = 2): VariableList =
   result = initVariableList()
   for i in 0..<n:
     let name = $chr(ord('A') + i)
-    discard result.add(newVariable(name, name, Cardinality(cardinality)))
+    discard result.add(initVariable(name, name, Cardinality(cardinality)))
 
 
 proc makeUniformTable(varList: VariableList; vars: seq[VariableIndex]): Table =
@@ -360,9 +360,9 @@ suite "BP edge cases":
 
   test "larger cardinality variables":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(4)))
-    discard varList.add(newVariable("B", "B", Cardinality(3)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(4)))
+    discard varList.add(initVariable("B", "B", Cardinality(3)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
     let relAB = initRelation(@[VariableIndex(0), VariableIndex(1)])
     let relBC = initRelation(@[VariableIndex(1), VariableIndex(2)])

@@ -13,9 +13,9 @@ import ../src/occam/search/lattice
 suite "Generate parents":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
   test "independence model has parents":
     let indep = createIndependenceModel(varList)  # A:B:C
@@ -64,9 +64,9 @@ suite "Generate parents":
 suite "Generate children":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
   test "saturated model has children":
     let saturated = createSaturatedModel(varList)  # ABC
@@ -112,8 +112,8 @@ suite "Generate children":
 suite "Enumerate lattice - 2 variables":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
   test "complete lattice has 2 models":
     let lattice = enumerateLattice(varList)
@@ -139,9 +139,9 @@ suite "Enumerate lattice - 2 variables":
 suite "Enumerate lattice - 3 variables":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
   test "complete lattice has expected models":
     let lattice = enumerateLattice(varList)
@@ -202,10 +202,10 @@ suite "Enumerate lattice - 3 variables":
 suite "Enumerate lattice - 4 variables":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
 
   test "lattice includes bottom and top":
     let lattice = enumerateLattice(varList)
@@ -228,9 +228,9 @@ suite "Enumerate lattice - 4 variables":
 suite "Enumerate directed lattice":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("Z", "Z", Cardinality(2), isDependent = true))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("Z", "Z", Cardinality(2), isDependent = true))
 
   test "directed lattice includes bottom model":
     let lattice = enumerateDirectedLattice(varList)
@@ -274,9 +274,9 @@ suite "Enumerate directed lattice":
 suite "Lattice model metadata":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
   test "hasLoops is correctly identified":
     let lattice = enumerateLattice(varList)
@@ -305,7 +305,7 @@ suite "Lattice model metadata":
 suite "Edge cases":
   test "single variable lattice":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
 
     let lattice = enumerateLattice(varList)
 
@@ -323,8 +323,8 @@ suite "Edge cases":
 
   test "maxModels = 1 returns bottom only":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
     let lattice = enumerateLattice(varList, maxModels = 1)
 
@@ -335,9 +335,9 @@ suite "Edge cases":
 suite "Lattice properties":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
   test "parent of child returns to original or higher":
     let indep = createIndependenceModel(varList)

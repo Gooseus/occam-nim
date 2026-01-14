@@ -26,7 +26,7 @@ proc makeTestVarList(n: int; cardinality = 2): VariableList =
   result = initVariableList()
   for i in 0..<n:
     let name = $chr(ord('A') + i)
-    discard result.add(newVariable(name, name, Cardinality(cardinality)))
+    discard result.add(initVariable(name, name, Cardinality(cardinality)))
 
 
 proc makeRandomTable(varList: VariableList; seed: int = 42): coretable.Table =

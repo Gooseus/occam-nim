@@ -22,16 +22,7 @@ type
     modelId: int
 
 
-func initModel*(relations: seq[Relation]): Model =
-  ## Create a new model with the given relations
-  ## Relations will be sorted automatically
-  result.relations = relations
-  result.relations.sort()
-  result.progenitorModel = none(ptr Model)
-  result.modelId = 0
-
-# Deprecated - use initModel instead
-func newModel*(relations: openArray[Relation] = []): Model {.deprecated: "Use initModel instead".} =
+func initModel*(relations: openArray[Relation] = []): Model =
   ## Create a new model with the given relations
   ## Relations will be sorted automatically
   result.relations = @relations

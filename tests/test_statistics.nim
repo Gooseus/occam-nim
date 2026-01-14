@@ -13,28 +13,28 @@ suite "Degrees of freedom - Relation":
   setup:
     var varList = initVariableList()
     # A: 3 values, B: 2 values, C: 4 values
-    discard varList.add(newVariable("A", "A", Cardinality(3)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(4)))
+    discard varList.add(initVariable("A", "A", Cardinality(3)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(4)))
 
   test "df for single variable relation":
-    let r = newRelation(varList, @[VariableIndex(0)])
+    let r = initRelation(@[VariableIndex(0)])
     check relationDF(r, varList) == 2  # 3 - 1
 
   test "df for two variable relation":
-    let r = newRelation(varList, @[VariableIndex(0), VariableIndex(1)])
+    let r = initRelation(@[VariableIndex(0), VariableIndex(1)])
     check relationDF(r, varList) == 5  # 3*2 - 1
 
   test "df for full relation":
-    let r = newRelation(varList, @[VariableIndex(0), VariableIndex(1), VariableIndex(2)])
+    let r = initRelation(@[VariableIndex(0), VariableIndex(1), VariableIndex(2)])
     check relationDF(r, varList) == 23  # 3*2*4 - 1
 
 suite "Degrees of freedom - Model":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(3)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(4)))
+    discard varList.add(initVariable("A", "A", Cardinality(3)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(4)))
 
   test "df for independence model":
     # Independence model A:B:C
@@ -55,9 +55,9 @@ suite "Degrees of freedom - Model":
     # Actually for non-orthogonal models it's more complex
     # Let's use the simpler formula: DF(data) - DF(model)
     # where DF(model) = sum of relation DFs minus overlaps
-    let rAB = newRelation(varList, @[VariableIndex(0), VariableIndex(1)])
-    let rC = newRelation(varList, @[VariableIndex(2)])
-    let m = newModel(@[rAB, rC])
+    let rAB = initRelation(@[VariableIndex(0), VariableIndex(1)])
+    let rC = initRelation(@[VariableIndex(2)])
+    let m = initModel(@[rAB, rC])
 
     # For orthogonal models (no overlaps): sum of relation DFs
     # DF = 5 + 3 = 8
@@ -66,9 +66,9 @@ suite "Degrees of freedom - Model":
   test "df for model with overlap":
     # Model AB:BC - has overlap on B
     # This requires more complex calculation
-    let rAB = newRelation(varList, @[VariableIndex(0), VariableIndex(1)])
-    let rBC = newRelation(varList, @[VariableIndex(1), VariableIndex(2)])
-    let m = newModel(@[rAB, rBC])
+    let rAB = initRelation(@[VariableIndex(0), VariableIndex(1)])
+    let rBC = initRelation(@[VariableIndex(1), VariableIndex(2)])
+    let m = initModel(@[rAB, rBC])
 
     # For models with overlaps, use inclusion-exclusion
     # DF = DF(AB) + DF(BC) - DF(B) = 5 + 7 - 1 = 11
@@ -77,9 +77,9 @@ suite "Degrees of freedom - Model":
 suite "Delta degrees of freedom":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(3)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(4)))
+    discard varList.add(initVariable("A", "A", Cardinality(3)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(4)))
 
   test "ddf from independence to saturated":
     # ΔDF = DF(m1) - DF(m2)

@@ -15,9 +15,9 @@ import ../src/occam/manager/vb
 # Helper to create a directed variable list (IVs + DV)
 proc createDirectedVarList(): VariableList =
   result = initVariableList()
-  discard result.add(newVariable("A", "A", Cardinality(2), isDependent = false))
-  discard result.add(newVariable("B", "B", Cardinality(2), isDependent = false))
-  discard result.add(newVariable("Z", "Z", Cardinality(2), isDependent = true))
+  discard result.add(initVariable("A", "A", Cardinality(2), isDependent = false))
+  discard result.add(initVariable("B", "B", Cardinality(2), isDependent = false))
+  discard result.add(initVariable("Z", "Z", Cardinality(2), isDependent = true))
 
 
 # Helper to create test data with known structure
@@ -202,8 +202,8 @@ suite "Confusion Matrix":
 suite "Confusion Matrix - Multi-class":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2), isDependent = false))
-    discard varList.add(newVariable("Z", "Z", Cardinality(3), isDependent = true))  # 3-class DV
+    discard varList.add(initVariable("A", "A", Cardinality(2), isDependent = false))
+    discard varList.add(initVariable("Z", "Z", Cardinality(3), isDependent = true))  # 3-class DV
 
   test "3x3 confusion matrix":
     # Create data with 3-class DV
@@ -259,8 +259,8 @@ suite "Confusion Matrix - Multi-class":
 suite "Conditional DV - Edge Cases":
   test "single IV variable":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2), isDependent = false))
-    discard varList.add(newVariable("Z", "Z", Cardinality(2), isDependent = true))
+    discard varList.add(initVariable("A", "A", Cardinality(2), isDependent = false))
+    discard varList.add(initVariable("Z", "Z", Cardinality(2), isDependent = true))
 
     var data = initContingencyTable(varList.keySize)
     data.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0)]), 80.0)
@@ -284,10 +284,10 @@ suite "Conditional DV - Edge Cases":
 
   test "three IV variables":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2), isDependent = false))
-    discard varList.add(newVariable("B", "B", Cardinality(2), isDependent = false))
-    discard varList.add(newVariable("C", "C", Cardinality(2), isDependent = false))
-    discard varList.add(newVariable("Z", "Z", Cardinality(2), isDependent = true))
+    discard varList.add(initVariable("A", "A", Cardinality(2), isDependent = false))
+    discard varList.add(initVariable("B", "B", Cardinality(2), isDependent = false))
+    discard varList.add(initVariable("C", "C", Cardinality(2), isDependent = false))
+    discard varList.add(initVariable("Z", "Z", Cardinality(2), isDependent = true))
 
     # Create minimal data
     var data = initContingencyTable(varList.keySize)

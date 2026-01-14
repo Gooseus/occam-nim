@@ -51,9 +51,9 @@ proc makeUniformTable(varList: VariableList): Table =
 suite "Full search vs loopless - generates loop models":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
     let inputTable = makeUniformTable(varList)
 
   test "full search includes loop models in neighbors":
@@ -117,9 +117,9 @@ suite "Full search vs loopless - generates loop models":
 suite "Full search up (neutral)":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
     let inputTable = makeUniformTable(varList)
 
   test "search from bottom finds parents":
@@ -161,9 +161,9 @@ suite "Full search up (neutral)":
 suite "Full search down (neutral)":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
     let inputTable = makeUniformTable(varList)
 
   test "search from top finds children":
@@ -208,9 +208,9 @@ suite "Full search down (neutral)":
 suite "Full search - deduplication":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
     let inputTable = makeUniformTable(varList)
 
   test "neighbors have no duplicates":
@@ -339,9 +339,9 @@ suite "Add/remove variable from relation":
 suite "Find relation utilities":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
   test "findRelationWithVariable finds correct relation":
     let rA = initRelation(@[VariableIndex(0)])
@@ -380,8 +380,8 @@ suite "Find relation utilities":
 suite "addIfUnique":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
   test "adds unique model":
     let rA = initRelation(@[VariableIndex(0)])
@@ -410,10 +410,10 @@ suite "addIfUnique":
 suite "Full search with 4 variables":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
     let inputTable = makeUniformTable(varList)
 
   test "search from bottom with 4 variables":
@@ -441,9 +441,9 @@ suite "Full search with 4 variables":
 suite "Full search - directed systems":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("Z", "Z", Cardinality(2), isDependent = true))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("Z", "Z", Cardinality(2), isDependent = true))
     let inputTable = makeUniformTable(varList)
 
   test "directed search up from bottom":

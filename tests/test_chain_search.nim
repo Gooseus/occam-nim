@@ -16,10 +16,10 @@ import ../src/occam/search/chain
 suite "Chain model detection":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
 
   test "model AB:BC is a chain":
     # Linear chain: A-B-C
@@ -75,10 +75,10 @@ suite "Chain model detection":
   test "model AB:AC:AD is NOT a chain (true star pattern)":
     # True star with A at center - A has 3 neighbors
     var varList5 = initVariableList()
-    discard varList5.add(newVariable("A", "A", Cardinality(2)))
-    discard varList5.add(newVariable("B", "B", Cardinality(2)))
-    discard varList5.add(newVariable("C", "C", Cardinality(2)))
-    discard varList5.add(newVariable("D", "D", Cardinality(2)))
+    discard varList5.add(initVariable("A", "A", Cardinality(2)))
+    discard varList5.add(initVariable("B", "B", Cardinality(2)))
+    discard varList5.add(initVariable("C", "C", Cardinality(2)))
+    discard varList5.add(initVariable("D", "D", Cardinality(2)))
 
     let rAB = initRelation(@[VariableIndex(0), VariableIndex(1)])
     let rAC = initRelation(@[VariableIndex(0), VariableIndex(2)])
@@ -96,15 +96,15 @@ suite "Chain model detection":
 suite "Chain generation":
   setup:
     var varList3 = initVariableList()
-    discard varList3.add(newVariable("A", "A", Cardinality(2)))
-    discard varList3.add(newVariable("B", "B", Cardinality(2)))
-    discard varList3.add(newVariable("C", "C", Cardinality(2)))
+    discard varList3.add(initVariable("A", "A", Cardinality(2)))
+    discard varList3.add(initVariable("B", "B", Cardinality(2)))
+    discard varList3.add(initVariable("C", "C", Cardinality(2)))
 
     var varList4 = initVariableList()
-    discard varList4.add(newVariable("A", "A", Cardinality(2)))
-    discard varList4.add(newVariable("B", "B", Cardinality(2)))
-    discard varList4.add(newVariable("C", "C", Cardinality(2)))
-    discard varList4.add(newVariable("D", "D", Cardinality(2)))
+    discard varList4.add(initVariable("A", "A", Cardinality(2)))
+    discard varList4.add(initVariable("B", "B", Cardinality(2)))
+    discard varList4.add(initVariable("C", "C", Cardinality(2)))
+    discard varList4.add(initVariable("D", "D", Cardinality(2)))
 
   test "generate all chains for 3 variables":
     let chains = generateAllChains(varList3)
@@ -144,16 +144,16 @@ suite "Chain generation":
 suite "Chain search with statistics":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
     # Create data with chain structure A-B-C
     var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
-          var k = newKey(varList.keySize)
+          var k = initKey(varList.keySize)
           k.setValue(varList, VariableIndex(0), a)
           k.setValue(varList, VariableIndex(1), b)
           k.setValue(varList, VariableIndex(2), c)
@@ -185,15 +185,15 @@ suite "Chain search with statistics":
 suite "Chain search edge cases":
   test "single variable - no chains":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
 
     let chains = generateAllChains(varList)
     check chains.len == 0
 
   test "two variables - one chain":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
     let chains = generateAllChains(varList)
     check chains.len == 1
@@ -201,11 +201,11 @@ suite "Chain search edge cases":
 
   test "five variables - 60 chains":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
-    discard varList.add(newVariable("E", "E", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("E", "E", Cardinality(2)))
 
     let chains = generateAllChains(varList)
     # 5!/2 = 60 unique chains

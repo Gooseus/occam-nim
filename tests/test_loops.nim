@@ -31,10 +31,10 @@ proc makeModel(varList: VariableList; spec: string): Model =
 suite "Loop detection - basic cases":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
 
   test "single relation ABC is loopless":
     let m = makeModel(varList, "ABC")
@@ -72,11 +72,11 @@ suite "Loop detection - basic cases":
 suite "Loop detection - larger models":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
-    discard varList.add(newVariable("E", "E", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("E", "E", Cardinality(2)))
 
   test "pentagon AB:BC:CD:DE:AE has loops":
     let m = makeModel(varList, "AB:BC:CD:DE:AE")
@@ -100,10 +100,10 @@ suite "Loop detection - larger models":
 suite "Loop detection - 3-variable relations":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
 
   test "ABC:BCD is loopless (share BC)":
     let m = makeModel(varList, "ABC:BCD")
@@ -121,11 +121,11 @@ suite "Loop detection - 3-variable relations":
 
   test "ABC:BCD:CDE is loopless (chain)":
     var vl5 = initVariableList()
-    discard vl5.add(newVariable("A", "A", Cardinality(2)))
-    discard vl5.add(newVariable("B", "B", Cardinality(2)))
-    discard vl5.add(newVariable("C", "C", Cardinality(2)))
-    discard vl5.add(newVariable("D", "D", Cardinality(2)))
-    discard vl5.add(newVariable("E", "E", Cardinality(2)))
+    discard vl5.add(initVariable("A", "A", Cardinality(2)))
+    discard vl5.add(initVariable("B", "B", Cardinality(2)))
+    discard vl5.add(initVariable("C", "C", Cardinality(2)))
+    discard vl5.add(initVariable("D", "D", Cardinality(2)))
+    discard vl5.add(initVariable("E", "E", Cardinality(2)))
     let m = makeModel(vl5, "ABC:BCD:CDE")
     check not hasLoops(m, vl5)
 
@@ -133,10 +133,10 @@ suite "Loop detection - 3-variable relations":
 suite "Loop detection - mixed relation sizes":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
 
   test "ABC:D is loopless (disconnected)":
     let m = makeModel(varList, "ABC:D")
@@ -160,12 +160,12 @@ suite "Loop detection - mixed relation sizes":
 suite "Loop detection - disconnected components":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
-    discard varList.add(newVariable("E", "E", Cardinality(2)))
-    discard varList.add(newVariable("F", "F", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("E", "E", Cardinality(2)))
+    discard varList.add(initVariable("F", "F", Cardinality(2)))
 
   test "AB:CD:EF is loopless (3 disconnected)":
     let m = makeModel(varList, "AB:CD:EF")
@@ -184,9 +184,9 @@ suite "Loop detection - disconnected components":
 suite "Loop detection - duplicate pairs":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
   test "AB:ABC has duplicate pair (A,B) - is this a loop?":
     # The pair (A,B) appears in both AB and ABC
@@ -201,13 +201,13 @@ suite "Loop detection - duplicate pairs":
 suite "Loop detection - edge cases":
   test "empty model has no loops":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
     let m = initModel(@[])
     check not hasLoops(m, varList)
 
   test "single variable A has no loops":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
     let m = makeModel(varList, "A")
     check not hasLoops(m, varList)
 
@@ -218,10 +218,10 @@ suite "Loop detection - directed system models":
 
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("Z", "Z", Cardinality(2), isDependent = true))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("Z", "Z", Cardinality(2), isDependent = true))
 
   test "ABC:Z is loopless (bottom model)":
     let m = makeModel(varList, "ABC:Z")

@@ -67,8 +67,8 @@ suite "IPF Basic Convergence":
   test "IPF converges for 2x2 table with single relation":
     # Single relation means algebraic solution exists
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
     # Input data
     var inputTable = makeSimpleTable(varList, @[0.4, 0.1, 0.2, 0.3])
@@ -84,8 +84,8 @@ suite "IPF Basic Convergence":
 
   test "IPF converges for independence model":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
     var inputTable = makeSimpleTable(varList, @[0.4, 0.1, 0.2, 0.3])
 
@@ -111,9 +111,9 @@ suite "IPF Basic Convergence":
 
   test "IPF converges for chain model AB:BC":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
     # Input data for 8 cells
     var inputTable = makeSimpleTable(varList, @[0.1, 0.2, 0.15, 0.05, 0.2, 0.1, 0.1, 0.1])
@@ -133,9 +133,9 @@ suite "IPF Basic Convergence":
 suite "IPF Loop Models":
   test "IPF converges for triangle AB:BC:AC":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
     # Input data
     var inputTable = makeSimpleTable(varList, @[0.2, 0.1, 0.15, 0.05, 0.1, 0.15, 0.1, 0.15])
@@ -155,9 +155,9 @@ suite "IPF Loop Models":
 
   test "IPF preserves marginals for triangle model":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
     var inputTable = makeSimpleTable(varList, @[0.2, 0.1, 0.15, 0.05, 0.1, 0.15, 0.1, 0.15])
 
@@ -178,8 +178,8 @@ suite "IPF Loop Models":
 suite "IPF Edge Cases":
   test "IPF handles uniform input":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
     # Uniform distribution
     var inputTable = makeSimpleTable(varList, @[0.25, 0.25, 0.25, 0.25])
@@ -198,8 +198,8 @@ suite "IPF Edge Cases":
 
   test "IPF handles sparse data":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(3)))
-    discard varList.add(newVariable("B", "B", Cardinality(3)))
+    discard varList.add(initVariable("A", "A", Cardinality(3)))
+    discard varList.add(initVariable("B", "B", Cardinality(3)))
 
     # Sparse input - only some cells have data
     var inputTable = initContingencyTable(varList.keySize)
@@ -220,9 +220,9 @@ suite "IPF Edge Cases":
 
   test "IPF respects max iterations":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
     var inputTable = makeSimpleTable(varList, @[0.2, 0.1, 0.15, 0.05, 0.1, 0.15, 0.1, 0.15])
 
@@ -241,8 +241,8 @@ suite "IPF Edge Cases":
 
   test "IPF handles very small convergence threshold":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
     var inputTable = makeSimpleTable(varList, @[0.4, 0.1, 0.2, 0.3])
 
@@ -261,9 +261,9 @@ suite "IPF Edge Cases":
 suite "IPF Numerical Stability":
   test "IPF maintains probability normalization":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(3)))
-    discard varList.add(newVariable("B", "B", Cardinality(3)))
-    discard varList.add(newVariable("C", "C", Cardinality(3)))
+    discard varList.add(initVariable("A", "A", Cardinality(3)))
+    discard varList.add(initVariable("B", "B", Cardinality(3)))
+    discard varList.add(initVariable("C", "C", Cardinality(3)))
 
     # 27-cell table
     var probs = newSeq[float64](27)
@@ -290,8 +290,8 @@ suite "IPF Numerical Stability":
 
   test "IPF handles near-zero probabilities":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
     # Very skewed distribution
     var inputTable = makeSimpleTable(varList, @[0.99, 0.005, 0.004, 0.001])
@@ -312,9 +312,9 @@ suite "IPF Numerical Stability":
 
   test "IPF produces non-negative probabilities":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
     var inputTable = makeSimpleTable(varList, @[0.3, 0.05, 0.1, 0.05, 0.15, 0.1, 0.15, 0.1])
 
@@ -334,9 +334,9 @@ suite "IPF Numerical Stability":
 suite "IPF vs Algebraic for Loopless":
   test "IPF matches algebraic for chain AB:BC":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
     var inputTable = makeSimpleTable(varList, @[0.1, 0.2, 0.15, 0.05, 0.2, 0.1, 0.1, 0.1])
 
@@ -362,10 +362,10 @@ suite "IPF vs Algebraic for Loopless":
 
   test "IPF matches algebraic for star AB:AC:AD":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
 
     # 16-cell table
     var probs = newSeq[float64](16)
@@ -393,9 +393,9 @@ suite "IPF vs Algebraic for Loopless":
 suite "IPF Entropy Properties":
   test "Fitted entropy is bounded by data entropy":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
     var inputTable = makeSimpleTable(varList, @[0.2, 0.1, 0.15, 0.05, 0.1, 0.15, 0.1, 0.15])
 
@@ -415,8 +415,8 @@ suite "IPF Entropy Properties":
 
   test "Saturated model entropy equals data entropy":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
     var inputTable = makeSimpleTable(varList, @[0.4, 0.1, 0.2, 0.3])
 
@@ -432,8 +432,8 @@ suite "IPF Entropy Properties":
 
   test "Independence model has maximum entropy for constraints":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
     # Non-independent input
     var inputTable = makeSimpleTable(varList, @[0.4, 0.1, 0.1, 0.4])
@@ -455,9 +455,9 @@ suite "IPF Entropy Properties":
 suite "IPF Special Cases":
   test "IPF with single-variable relations":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(3)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(3)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
     # 12-cell table
     var probs = newSeq[float64](12)
@@ -484,9 +484,9 @@ suite "IPF Special Cases":
 
   test "IPF with overlapping relations":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
     var inputTable = makeSimpleTable(varList, @[0.15, 0.1, 0.2, 0.05, 0.1, 0.15, 0.1, 0.15])
 

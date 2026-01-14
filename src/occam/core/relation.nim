@@ -17,15 +17,6 @@ type
     projectionTable: Option[ContingencyTable]
 
 
-# Deprecated - use initRelation instead
-func newRelation*(varList: VariableList; indices: openArray[VariableIndex] = []): Relation {.deprecated: "Use initRelation instead".} =
-  ## Create a new relation with the given variable indices
-  ## Indices will be sorted automatically
-  ## Note: varList parameter is unused and retained only for backward compatibility
-  result.varIndices = @indices
-  result.varIndices.sort(cmp)
-
-
 func variableCount*(r: Relation): int {.inline.} =
   ## Number of variables in the relation
   r.varIndices.len

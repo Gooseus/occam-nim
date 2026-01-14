@@ -175,12 +175,12 @@ proc latticeCmd*(input = "";
           isDV = true
 
         let abbrev = if name.len > 0: $name[0].toUpperAscii else: "X"
-        discard varList.add(newVariable(name, abbrev, Cardinality(card), isDependent = isDV))
+        discard varList.add(initVariable(name, abbrev, Cardinality(card), isDependent = isDV))
       else:
         # Just a name, assume cardinality 2
         let name = trimmed
         let abbrev = if name.len > 0: $name[0].toUpperAscii else: "X"
-        discard varList.add(newVariable(name, abbrev, Cardinality(2)))
+        discard varList.add(initVariable(name, abbrev, Cardinality(2)))
   else:
     echo "Error: Either --input or --variables required"
     return 1

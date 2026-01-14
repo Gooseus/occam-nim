@@ -22,8 +22,8 @@ suite "Table creation":
 suite "Table add operations":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(3)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(3)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
   test "add single tuple":
     var t = initContingencyTable(varList.keySize)
@@ -50,8 +50,8 @@ suite "Table add operations":
 suite "Table sort and find":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(4)))
-    discard varList.add(newVariable("B", "B", Cardinality(4)))
+    discard varList.add(initVariable("A", "A", Cardinality(4)))
+    discard varList.add(initVariable("B", "B", Cardinality(4)))
 
   test "sort puts tuples in key order":
     var t = initContingencyTable(varList.keySize)
@@ -108,8 +108,8 @@ suite "Table sort and find":
 suite "Table value operations":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(3)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(3)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
   test "sum returns total of all values":
     var t = initContingencyTable(varList.keySize)
@@ -157,8 +157,8 @@ suite "Table projection":
   setup:
     var varList = initVariableList()
     # A has 3 values, B has 2 values
-    discard varList.add(newVariable("A", "A", Cardinality(3)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(3)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
   test "project to single variable":
     var t = initContingencyTable(varList.keySize)
@@ -206,8 +206,8 @@ suite "Table projection":
 suite "Table sumInto":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(3)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(3)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
   test "sumInto combines matching keys":
     var t = initContingencyTable(varList.keySize)
@@ -240,7 +240,7 @@ suite "Table sumInto":
 suite "Table iteration":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(3)))
+    discard varList.add(initVariable("A", "A", Cardinality(3)))
 
   test "iterate over tuples":
     var t = initContingencyTable(varList.keySize)
@@ -270,17 +270,17 @@ suite "Table with multiple segments":
     var varList = initVariableList()
     # Create enough variables to require 2 segments
     for i in 0..<17:
-      discard varList.add(newVariable("V" & $i, "V" & $i, Cardinality(4)))
+      discard varList.add(initVariable("V" & $i, "V" & $i, Cardinality(4)))
 
   test "table handles multi-segment keys":
     check varList.keySize == 2
 
     var t = initContingencyTable(varList.keySize)
-    var k1 = newKey(varList.keySize)
+    var k1 = initKey(varList.keySize)
     k1.setValue(varList, VariableIndex(0), 1)
     k1.setValue(varList, VariableIndex(16), 2)
 
-    var k2 = newKey(varList.keySize)
+    var k2 = initKey(varList.keySize)
     k2.setValue(varList, VariableIndex(0), 2)
     k2.setValue(varList, VariableIndex(16), 1)
 
@@ -300,8 +300,8 @@ suite "Table with multiple segments":
 suite "Table edge cases and error paths":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(3)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(3)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
   test "should handle find on empty table":
     let t = initContingencyTable(varList.keySize)

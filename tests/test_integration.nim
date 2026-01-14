@@ -58,9 +58,9 @@ suite "Chain model recovery":
 
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
   test "BIC correctly identifies chain structure":
     # Generate data from A→B→C with strong transition
@@ -115,9 +115,9 @@ suite "Star model recovery":
   setup:
     var varList = initVariableList()
     # B is center (index 0) for correct sampling order
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
   test "find star AB:BC from star data":
     randomize(456)
@@ -145,9 +145,9 @@ suite "Independence model recovery":
 
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
   test "find independence A:B:C from independent data":
     randomize(789)
@@ -183,9 +183,9 @@ suite "Directed system recovery":
 
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("Z", "Z", Cardinality(2), isDependent = true))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("Z", "Z", Cardinality(2), isDependent = true))
 
   test "find predictive model when A predicts Z":
     randomize(999)
@@ -196,7 +196,7 @@ suite "Directed system recovery":
     for a in 0..<2:
       for b in 0..<2:
         for z in 0..<2:
-          var k = newKey(varList.keySize)
+          var k = initKey(varList.keySize)
           k.setValue(varList, VariableIndex(0), a)
           k.setValue(varList, VariableIndex(1), b)
           k.setValue(varList, VariableIndex(2), z)
@@ -224,9 +224,9 @@ suite "Sample size effects":
 
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
   test "larger samples give more reliable recovery":
     let graphModel = createChainModel(varList, 0.85)
@@ -265,9 +265,9 @@ suite "Model comparison statistics":
 
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
   test "true model has good fit statistics":
     randomize(222)

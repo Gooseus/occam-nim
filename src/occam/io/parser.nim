@@ -192,7 +192,7 @@ proc toVariableList*(spec: DataSpec): VariableList =
   result = initVariableList(spec.variables.len)
 
   for vspec in spec.variables:
-    var v = newVariable(
+    var v = initVariable(
       vspec.name,
       vspec.abbrev,
       Cardinality(vspec.cardinality),

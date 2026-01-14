@@ -16,16 +16,16 @@ import ../src/occam/manager/vb
 suite "VBManager creation":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
     # Create sample data - ABC full table
     var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
-          var k = newKey(varList.keySize)
+          var k = initKey(varList.keySize)
           k.setValue(varList, VariableIndex(0), a)
           k.setValue(varList, VariableIndex(1), b)
           k.setValue(varList, VariableIndex(2), c)
@@ -51,15 +51,15 @@ suite "VBManager creation":
 suite "Reference models":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
     var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
-          var k = newKey(varList.keySize)
+          var k = initKey(varList.keySize)
           k.setValue(varList, VariableIndex(0), a)
           k.setValue(varList, VariableIndex(1), b)
           k.setValue(varList, VariableIndex(2), c)
@@ -85,15 +85,15 @@ suite "Reference models":
 suite "Directed system reference models":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("Z", "Z", Cardinality(2), isDependent = true))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("Z", "Z", Cardinality(2), isDependent = true))
 
     var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for z in 0..<2:
-          var k = newKey(varList.keySize)
+          var k = initKey(varList.keySize)
           k.setValue(varList, VariableIndex(0), a)
           k.setValue(varList, VariableIndex(1), b)
           k.setValue(varList, VariableIndex(2), z)
@@ -130,15 +130,15 @@ suite "Directed system reference models":
 suite "Relation caching":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
     var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
-          var k = newKey(varList.keySize)
+          var k = initKey(varList.keySize)
           k.setValue(varList, VariableIndex(0), a)
           k.setValue(varList, VariableIndex(1), b)
           k.setValue(varList, VariableIndex(2), c)
@@ -161,15 +161,15 @@ suite "Relation caching":
 suite "Projection computation":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
     var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
-          var k = newKey(varList.keySize)
+          var k = initKey(varList.keySize)
           k.setValue(varList, VariableIndex(0), a)
           k.setValue(varList, VariableIndex(1), b)
           k.setValue(varList, VariableIndex(2), c)
@@ -198,14 +198,14 @@ suite "Projection computation":
 suite "Entropy computation":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
     # Uniform distribution
     var uniformTable = initContingencyTable(varList.keySize, 4)
     for a in 0..<2:
       for b in 0..<2:
-        var k = newKey(varList.keySize)
+        var k = initKey(varList.keySize)
         k.setValue(varList, VariableIndex(0), a)
         k.setValue(varList, VariableIndex(1), b)
         uniformTable.add(k, 25.0)  # 100 total
@@ -227,15 +227,15 @@ suite "Entropy computation":
 suite "Model statistics":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
     var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
-          var k = newKey(varList.keySize)
+          var k = initKey(varList.keySize)
           k.setValue(varList, VariableIndex(0), a)
           k.setValue(varList, VariableIndex(1), b)
           k.setValue(varList, VariableIndex(2), c)
@@ -266,15 +266,15 @@ suite "Model statistics":
 suite "Model creation from string":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
     var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
-          var k = newKey(varList.keySize)
+          var k = initKey(varList.keySize)
           k.setValue(varList, VariableIndex(0), a)
           k.setValue(varList, VariableIndex(1), b)
           k.setValue(varList, VariableIndex(2), c)
@@ -303,15 +303,15 @@ suite "Model creation from string":
 suite "Search one level":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
     var inputTable = initContingencyTable(varList.keySize, 8)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
-          var k = newKey(varList.keySize)
+          var k = initKey(varList.keySize)
           k.setValue(varList, VariableIndex(0), a)
           k.setValue(varList, VariableIndex(1), b)
           k.setValue(varList, VariableIndex(2), c)
@@ -336,13 +336,13 @@ suite "Search one level":
 suite "Model caching":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
     var inputTable = initContingencyTable(varList.keySize, 4)
     for a in 0..<2:
       for b in 0..<2:
-        var k = newKey(varList.keySize)
+        var k = initKey(varList.keySize)
         k.setValue(varList, VariableIndex(0), a)
         k.setValue(varList, VariableIndex(1), b)
         inputTable.add(k, 25.0)

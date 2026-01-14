@@ -23,7 +23,7 @@ proc makeTestVarList(n: int): VariableList =
   result = initVariableList()
   for i in 0..<n:
     let name = $chr(ord('A') + i)
-    discard result.add(newVariable(name, name, Cardinality(2)))
+    discard result.add(initVariable(name, name, Cardinality(2)))
 
 
 proc makeUniformTable(varList: VariableList): Table =

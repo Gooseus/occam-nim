@@ -16,10 +16,10 @@ import ../src/occam/search/disjoint
 suite "Disjoint model detection":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
 
   test "independence model is disjoint":
     # A:B:C:D - all single-variable relations, no overlap
@@ -69,17 +69,17 @@ suite "Disjoint model detection":
 suite "Disjoint search up (neutral)":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
 
     var inputTable = initContingencyTable(varList.keySize, 16)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
           for d in 0..<2:
-            var k = newKey(varList.keySize)
+            var k = initKey(varList.keySize)
             k.setValue(varList, VariableIndex(0), a)
             k.setValue(varList, VariableIndex(1), b)
             k.setValue(varList, VariableIndex(2), c)
@@ -112,17 +112,17 @@ suite "Disjoint search up (neutral)":
 suite "Disjoint search down (neutral)":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
 
     var inputTable = initContingencyTable(varList.keySize, 16)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
           for d in 0..<2:
-            var k = newKey(varList.keySize)
+            var k = initKey(varList.keySize)
             k.setValue(varList, VariableIndex(0), a)
             k.setValue(varList, VariableIndex(1), b)
             k.setValue(varList, VariableIndex(2), c)
@@ -161,17 +161,17 @@ suite "Disjoint search down (neutral)":
 suite "Disjoint search directed":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("Z", "Z", Cardinality(2), isDependent = true))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("Z", "Z", Cardinality(2), isDependent = true))
 
     var inputTable = initContingencyTable(varList.keySize, 16)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
           for z in 0..<2:
-            var k = newKey(varList.keySize)
+            var k = initKey(varList.keySize)
             k.setValue(varList, VariableIndex(0), a)
             k.setValue(varList, VariableIndex(1), b)
             k.setValue(varList, VariableIndex(2), c)
@@ -205,17 +205,17 @@ suite "Disjoint search directed":
 suite "Full disjoint search traversal":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
 
     var inputTable = initContingencyTable(varList.keySize, 16)
     for a in 0..<2:
       for b in 0..<2:
         for c in 0..<2:
           for d in 0..<2:
-            var k = newKey(varList.keySize)
+            var k = initKey(varList.keySize)
             k.setValue(varList, VariableIndex(0), a)
             k.setValue(varList, VariableIndex(1), b)
             k.setValue(varList, VariableIndex(2), c)

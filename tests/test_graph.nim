@@ -40,13 +40,13 @@ proc makeRelations(varList: VariableList; spec: string): seq[Relation] =
 
 suite "Graph - basic operations":
   test "create empty graph":
-    let g = newGraph(5)
+    let g = initGraph(5)
     check g.nodeCount == 5
     check g.degree(0) == 0
     check g.degree(4) == 0
 
   test "add edges":
-    var g = newGraph(4)
+    var g = initGraph(4)
     g.addEdge(0, 1)
     g.addEdge(1, 2)
     g.addEdge(2, 3)
@@ -57,25 +57,25 @@ suite "Graph - basic operations":
     check g.degree(1) == 2
 
   test "self-loops are ignored":
-    var g = newGraph(3)
+    var g = initGraph(3)
     g.addEdge(0, 0)
     check g.degree(0) == 0
 
 
 suite "Graph - Maximum Cardinality Search":
   test "MCS on empty graph":
-    let g = newGraph(0)
+    let g = initGraph(0)
     let ordering = maximumCardinalitySearch(g)
     check ordering.len == 0
 
   test "MCS on single node":
-    let g = newGraph(1)
+    let g = initGraph(1)
     let ordering = maximumCardinalitySearch(g)
     check ordering == @[0]
 
   test "MCS on path graph":
     # 0 -- 1 -- 2 -- 3
-    var g = newGraph(4)
+    var g = initGraph(4)
     g.addEdge(0, 1)
     g.addEdge(1, 2)
     g.addEdge(2, 3)
@@ -89,7 +89,7 @@ suite "Graph - Maximum Cardinality Search":
 
   test "MCS on complete graph K4":
     # Complete graph is chordal
-    var g = newGraph(4)
+    var g = initGraph(4)
     for i in 0..<4:
       for j in (i+1)..<4:
         g.addEdge(i, j)
@@ -99,16 +99,16 @@ suite "Graph - Maximum Cardinality Search":
 
 suite "Graph - Chordality testing":
   test "empty graph is chordal":
-    let g = newGraph(0)
+    let g = initGraph(0)
     check isChordal(g)
 
   test "single node is chordal":
-    let g = newGraph(1)
+    let g = initGraph(1)
     check isChordal(g)
 
   test "path is chordal":
     # 0 -- 1 -- 2 -- 3
-    var g = newGraph(4)
+    var g = initGraph(4)
     g.addEdge(0, 1)
     g.addEdge(1, 2)
     g.addEdge(2, 3)
@@ -118,7 +118,7 @@ suite "Graph - Chordality testing":
     # 0 -- 1
     # |  / |
     # 2    (triangle 0-1-2)
-    var g = newGraph(3)
+    var g = initGraph(3)
     g.addEdge(0, 1)
     g.addEdge(1, 2)
     g.addEdge(0, 2)
@@ -128,7 +128,7 @@ suite "Graph - Chordality testing":
     # 0 -- 1
     # |    |
     # 3 -- 2
-    var g = newGraph(4)
+    var g = initGraph(4)
     g.addEdge(0, 1)
     g.addEdge(1, 2)
     g.addEdge(2, 3)
@@ -139,7 +139,7 @@ suite "Graph - Chordality testing":
     # 0 -- 1
     # | \  |
     # 3 -- 2
-    var g = newGraph(4)
+    var g = initGraph(4)
     g.addEdge(0, 1)
     g.addEdge(1, 2)
     g.addEdge(2, 3)
@@ -148,7 +148,7 @@ suite "Graph - Chordality testing":
     check isChordal(g)
 
   test "complete graph K5 is chordal":
-    var g = newGraph(5)
+    var g = initGraph(5)
     for i in 0..<5:
       for j in (i+1)..<5:
         g.addEdge(i, j)
@@ -158,10 +158,10 @@ suite "Graph - Chordality testing":
 suite "Graph - Intersection graph construction":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
 
   test "disconnected relations have no edges":
     let rels = makeRelations(varList, "AB:CD")
@@ -190,10 +190,10 @@ suite "Graph - Intersection graph construction":
 suite "Graph - Equivalence with hasLoops (basic cases)":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
 
   test "single relation ABC":
     let m = makeModel(varList, "ABC")
@@ -255,11 +255,11 @@ suite "Graph - Equivalence with hasLoops (basic cases)":
 suite "Graph - Equivalence with hasLoops (larger models)":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
-    discard varList.add(newVariable("E", "E", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("E", "E", Cardinality(2)))
 
   test "pentagon has loops":
     let m = makeModel(varList, "AB:BC:CD:DE:AE")
@@ -293,11 +293,11 @@ suite "Graph - Equivalence with hasLoops (larger models)":
 suite "Graph - Equivalence with hasLoops (3-variable relations)":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
-    discard varList.add(newVariable("E", "E", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("E", "E", Cardinality(2)))
 
   test "ABC:BCD is loopless":
     let m = makeModel(varList, "ABC:BCD")
@@ -331,10 +331,10 @@ suite "Graph - Equivalence with hasLoops (3-variable relations)":
 suite "Graph - Equivalence with hasLoops (mixed sizes)":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
 
   test "ABC:D is loopless":
     let m = makeModel(varList, "ABC:D")
@@ -368,12 +368,12 @@ suite "Graph - Equivalence with hasLoops (mixed sizes)":
 suite "Graph - Equivalence with hasLoops (disconnected)":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
-    discard varList.add(newVariable("E", "E", Cardinality(2)))
-    discard varList.add(newVariable("F", "F", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("E", "E", Cardinality(2)))
+    discard varList.add(initVariable("F", "F", Cardinality(2)))
 
   test "AB:CD:EF is loopless":
     let m = makeModel(varList, "AB:CD:EF")
@@ -400,9 +400,9 @@ suite "Graph - Equivalence with hasLoops (disconnected)":
 suite "Graph - Equivalence with hasLoops (redundant relations)":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
   test "AB:ABC has redundant relation":
     let m = makeModel(varList, "AB:ABC")
@@ -415,7 +415,7 @@ suite "Graph - Equivalence with hasLoops (redundant relations)":
 suite "Graph - Equivalence with hasLoops (edge cases)":
   test "empty model":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
     let m = initModel(@[])
     let graphResult = hasLoopsViaGraph(m.relations)
     let origResult = hasLoops(m, varList)
@@ -424,7 +424,7 @@ suite "Graph - Equivalence with hasLoops (edge cases)":
 
   test "single variable A":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
     let m = makeModel(varList, "A")
     let graphResult = hasLoopsViaGraph(m.relations)
     let origResult = hasLoops(m, varList)
@@ -435,10 +435,10 @@ suite "Graph - Equivalence with hasLoops (edge cases)":
 suite "Graph - Equivalence with hasLoops (directed systems)":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("Z", "Z", Cardinality(2), isDependent = true))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("Z", "Z", Cardinality(2), isDependent = true))
 
   test "ABC:Z is loopless":
     let m = makeModel(varList, "ABC:Z")
@@ -479,10 +479,10 @@ suite "Graph - Equivalence with hasLoops (directed systems)":
 suite "Graph - findRIPOrdering":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
 
   test "loopless model has RIP ordering":
     let rels = makeRelations(varList, "AB:BC:CD")

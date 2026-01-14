@@ -16,9 +16,9 @@ suite "Relation Metrics":
   setup:
     # Create 3-variable system: A(2), B(2), C(2)
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
     # Create input data with known structure
     var inputTable = initContingencyTable(varList.keySize)

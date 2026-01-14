@@ -78,10 +78,10 @@ proc findBestModelByBIC(mgr: var VBManager; search: LooplessSearch;
 suite "Four variables - uniform cardinality":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
 
   test "state space is correct":
     check varList.stateSpace == 16  # 2^4
@@ -89,7 +89,7 @@ suite "Four variables - uniform cardinality":
   test "independence model structure":
     var table = initContingencyTable(varList.keySize, 16)
     for i in 0..<16:
-      var k = newKey(varList.keySize)
+      var k = initKey(varList.keySize)
       k.setValue(varList, VariableIndex(0), i and 1)
       k.setValue(varList, VariableIndex(1), (i shr 1) and 1)
       k.setValue(varList, VariableIndex(2), (i shr 2) and 1)
@@ -150,10 +150,10 @@ suite "Four variables - uniform cardinality":
 suite "Four variables - mixed cardinality":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))  # Binary
-    discard varList.add(newVariable("B", "B", Cardinality(3)))  # Ternary
-    discard varList.add(newVariable("C", "C", Cardinality(2)))  # Binary
-    discard varList.add(newVariable("D", "D", Cardinality(4)))  # Quaternary
+    discard varList.add(initVariable("A", "A", Cardinality(2)))  # Binary
+    discard varList.add(initVariable("B", "B", Cardinality(3)))  # Ternary
+    discard varList.add(initVariable("C", "C", Cardinality(2)))  # Binary
+    discard varList.add(initVariable("D", "D", Cardinality(4)))  # Quaternary
 
   test "state space with mixed cardinality":
     check varList.stateSpace == 48  # 2*3*2*4
@@ -165,7 +165,7 @@ suite "Four variables - mixed cardinality":
       for b in 0..<3:
         for c in 0..<2:
           for d in 0..<4:
-            var k = newKey(varList.keySize)
+            var k = initKey(varList.keySize)
             k.setValue(varList, VariableIndex(0), a)
             k.setValue(varList, VariableIndex(1), b)
             k.setValue(varList, VariableIndex(2), c)
@@ -211,11 +211,11 @@ suite "Four variables - mixed cardinality":
 suite "Five variables":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
-    discard varList.add(newVariable("E", "E", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("E", "E", Cardinality(2)))
 
   test "state space for 5 binary variables":
     check varList.stateSpace == 32  # 2^5
@@ -262,9 +262,9 @@ suite "Five variables":
 suite "Larger cardinalities":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(4)))
-    discard varList.add(newVariable("B", "B", Cardinality(4)))
-    discard varList.add(newVariable("C", "C", Cardinality(4)))
+    discard varList.add(initVariable("A", "A", Cardinality(4)))
+    discard varList.add(initVariable("B", "B", Cardinality(4)))
+    discard varList.add(initVariable("C", "C", Cardinality(4)))
 
   test "state space for 4x4x4":
     check varList.stateSpace == 64  # 4^3
@@ -310,10 +310,10 @@ suite "Larger cardinalities":
 suite "Directed system - multiple IVs":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("X1", "X", Cardinality(2)))
-    discard varList.add(newVariable("X2", "Y", Cardinality(2)))
-    discard varList.add(newVariable("X3", "W", Cardinality(3)))
-    discard varList.add(newVariable("Z", "Z", Cardinality(2), isDependent = true))
+    discard varList.add(initVariable("X1", "X", Cardinality(2)))
+    discard varList.add(initVariable("X2", "Y", Cardinality(2)))
+    discard varList.add(initVariable("X3", "W", Cardinality(3)))
+    discard varList.add(initVariable("Z", "Z", Cardinality(2), isDependent = true))
 
   test "directed system structure":
     check varList.isDirected
@@ -326,7 +326,7 @@ suite "Directed system - multiple IVs":
       for x2 in 0..<2:
         for x3 in 0..<3:
           for z in 0..<2:
-            var k = newKey(varList.keySize)
+            var k = initKey(varList.keySize)
             k.setValue(varList, VariableIndex(0), x1)
             k.setValue(varList, VariableIndex(1), x2)
             k.setValue(varList, VariableIndex(2), x3)
@@ -353,12 +353,12 @@ suite "Directed system - multiple IVs":
 suite "Stress test - 6 variables":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
-    discard varList.add(newVariable("D", "D", Cardinality(2)))
-    discard varList.add(newVariable("E", "E", Cardinality(2)))
-    discard varList.add(newVariable("F", "F", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("D", "D", Cardinality(2)))
+    discard varList.add(initVariable("E", "E", Cardinality(2)))
+    discard varList.add(initVariable("F", "F", Cardinality(2)))
 
   test "6-variable state space":
     check varList.stateSpace == 64  # 2^6

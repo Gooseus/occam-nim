@@ -48,9 +48,9 @@ suite "Relation cache initialization":
 suite "Relation cache get":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(3)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(4)))
+    discard varList.add(initVariable("A", "A", Cardinality(3)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(4)))
 
   test "get on empty cache returns none":
     let rc = initRelationCache()
@@ -59,7 +59,7 @@ suite "Relation cache get":
 
   test "get with nonexistent key returns none":
     var rc = initRelationCache()
-    let r = newRelation(varList, @[VariableIndex(0)])
+    let r = initRelation(@[VariableIndex(0)])
     discard rc.put(r)
     let result = rc.get(@[VariableIndex(1)])
     check result.isNone
@@ -68,21 +68,21 @@ suite "Relation cache get":
 suite "Relation cache put":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(3)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(4)))
+    discard varList.add(initVariable("A", "A", Cardinality(3)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(4)))
 
   test "put stores relation and returns it":
     var rc = initRelationCache()
-    let r = newRelation(varList, @[VariableIndex(0), VariableIndex(1)])
+    let r = initRelation(@[VariableIndex(0), VariableIndex(1)])
     let stored = rc.put(r)
     check stored == r
     check rc.len == 1
 
   test "put returns existing on duplicate":
     var rc = initRelationCache()
-    let r1 = newRelation(varList, @[VariableIndex(0), VariableIndex(1)])
-    let r2 = newRelation(varList, @[VariableIndex(0), VariableIndex(1)])
+    let r1 = initRelation(@[VariableIndex(0), VariableIndex(1)])
+    let r2 = initRelation(@[VariableIndex(0), VariableIndex(1)])
     discard rc.put(r1)
     let stored = rc.put(r2)
     check stored == r1
@@ -90,8 +90,8 @@ suite "Relation cache put":
 
   test "put handles different variable orders":
     var rc = initRelationCache()
-    let r1 = newRelation(varList, @[VariableIndex(0), VariableIndex(1)])
-    let r2 = newRelation(varList, @[VariableIndex(1), VariableIndex(0)])  # Same vars, different order
+    let r1 = initRelation(@[VariableIndex(0), VariableIndex(1)])
+    let r2 = initRelation(@[VariableIndex(1), VariableIndex(0)])  # Same vars, different order
     discard rc.put(r1)
     let stored = rc.put(r2)
     check stored == r1  # Returns existing (canonical)
@@ -99,9 +99,9 @@ suite "Relation cache put":
 
   test "put stores multiple distinct relations":
     var rc = initRelationCache()
-    let r1 = newRelation(varList, @[VariableIndex(0)])
-    let r2 = newRelation(varList, @[VariableIndex(1)])
-    let r3 = newRelation(varList, @[VariableIndex(0), VariableIndex(1)])
+    let r1 = initRelation(@[VariableIndex(0)])
+    let r2 = initRelation(@[VariableIndex(1)])
+    let r3 = initRelation(@[VariableIndex(0), VariableIndex(1)])
     discard rc.put(r1)
     discard rc.put(r2)
     discard rc.put(r3)
@@ -111,13 +111,13 @@ suite "Relation cache put":
 suite "Relation cache get after put":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(3)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(4)))
+    discard varList.add(initVariable("A", "A", Cardinality(3)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(4)))
 
   test "get retrieves stored relation":
     var rc = initRelationCache()
-    let r = newRelation(varList, @[VariableIndex(0), VariableIndex(1)])
+    let r = initRelation(@[VariableIndex(0), VariableIndex(1)])
     discard rc.put(r)
     let result = rc.get(@[VariableIndex(0), VariableIndex(1)])
     check result.isSome
@@ -125,7 +125,7 @@ suite "Relation cache get after put":
 
   test "get retrieves with different variable order":
     var rc = initRelationCache()
-    let r = newRelation(varList, @[VariableIndex(0), VariableIndex(1)])
+    let r = initRelation(@[VariableIndex(0), VariableIndex(1)])
     discard rc.put(r)
     # Query with different order
     let result = rc.get(@[VariableIndex(1), VariableIndex(0)])
@@ -136,24 +136,24 @@ suite "Relation cache get after put":
 suite "Relation cache contains":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(3)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(3)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
   test "contains returns true for stored relation":
     var rc = initRelationCache()
-    let r = newRelation(varList, @[VariableIndex(0)])
+    let r = initRelation(@[VariableIndex(0)])
     discard rc.put(r)
     check rc.contains(@[VariableIndex(0)])
 
   test "contains returns false for unstored relation":
     var rc = initRelationCache()
-    let r = newRelation(varList, @[VariableIndex(0)])
+    let r = initRelation(@[VariableIndex(0)])
     discard rc.put(r)
     check not rc.contains(@[VariableIndex(1)])
 
   test "contains is order-independent":
     var rc = initRelationCache()
-    let r = newRelation(varList, @[VariableIndex(0), VariableIndex(1)])
+    let r = initRelation(@[VariableIndex(0), VariableIndex(1)])
     discard rc.put(r)
     check rc.contains(@[VariableIndex(1), VariableIndex(0)])
 
@@ -161,13 +161,13 @@ suite "Relation cache contains":
 suite "Relation cache clear":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(3)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(3)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
   test "clear removes all entries":
     var rc = initRelationCache()
-    let r1 = newRelation(varList, @[VariableIndex(0)])
-    let r2 = newRelation(varList, @[VariableIndex(1)])
+    let r1 = initRelation(@[VariableIndex(0)])
+    let r2 = initRelation(@[VariableIndex(1)])
     discard rc.put(r1)
     discard rc.put(r2)
     check rc.len == 2
@@ -176,7 +176,7 @@ suite "Relation cache clear":
 
   test "clear allows re-adding":
     var rc = initRelationCache()
-    let r = newRelation(varList, @[VariableIndex(0)])
+    let r = initRelation(@[VariableIndex(0)])
     discard rc.put(r)
     rc.clear()
     check not rc.contains(@[VariableIndex(0)])
@@ -203,9 +203,9 @@ suite "Model cache get":
   test "get with nonexistent key returns none":
     var mc = initModelCache()
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    let r = newRelation(varList, @[VariableIndex(0), VariableIndex(1)])
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    let r = initRelation(@[VariableIndex(0), VariableIndex(1)])
     let m = initModel(@[r])
     discard mc.put(m, varList)
     let result = mc.get("XYZ")
@@ -215,13 +215,13 @@ suite "Model cache get":
 suite "Model cache put":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
   test "put stores model and returns it":
     var mc = initModelCache()
-    let r = newRelation(varList, @[VariableIndex(0), VariableIndex(1)])
+    let r = initRelation(@[VariableIndex(0), VariableIndex(1)])
     let m = initModel(@[r])
     let stored = mc.put(m, varList)
     check stored == m
@@ -229,9 +229,9 @@ suite "Model cache put":
 
   test "put returns existing on duplicate":
     var mc = initModelCache()
-    let r1 = newRelation(varList, @[VariableIndex(0), VariableIndex(1)])
+    let r1 = initRelation(@[VariableIndex(0), VariableIndex(1)])
     let m1 = initModel(@[r1])
-    let r2 = newRelation(varList, @[VariableIndex(0), VariableIndex(1)])
+    let r2 = initRelation(@[VariableIndex(0), VariableIndex(1)])
     let m2 = initModel(@[r2])
     discard mc.put(m1, varList)
     let stored = mc.put(m2, varList)
@@ -240,9 +240,9 @@ suite "Model cache put":
 
   test "put stores multiple distinct models":
     var mc = initModelCache()
-    let r1 = newRelation(varList, @[VariableIndex(0)])
-    let r2 = newRelation(varList, @[VariableIndex(1)])
-    let r3 = newRelation(varList, @[VariableIndex(0), VariableIndex(1)])
+    let r1 = initRelation(@[VariableIndex(0)])
+    let r2 = initRelation(@[VariableIndex(1)])
+    let r3 = initRelation(@[VariableIndex(0), VariableIndex(1)])
     let m1 = initModel(@[r1])
     let m2 = initModel(@[r2])
     let m3 = initModel(@[r3])
@@ -255,12 +255,12 @@ suite "Model cache put":
 suite "Model cache get after put":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
   test "get retrieves stored model":
     var mc = initModelCache()
-    let r = newRelation(varList, @[VariableIndex(0), VariableIndex(1)])
+    let r = initRelation(@[VariableIndex(0), VariableIndex(1)])
     let m = initModel(@[r])
     discard mc.put(m, varList)
     let name = m.printName(varList)
@@ -272,12 +272,12 @@ suite "Model cache get after put":
 suite "Model cache contains":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
   test "contains returns true for stored model":
     var mc = initModelCache()
-    let r = newRelation(varList, @[VariableIndex(0), VariableIndex(1)])
+    let r = initRelation(@[VariableIndex(0), VariableIndex(1)])
     let m = initModel(@[r])
     discard mc.put(m, varList)
     check mc.contains(m.printName(varList))
@@ -290,13 +290,13 @@ suite "Model cache contains":
 suite "Model cache clear":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
   test "clear removes all entries":
     var mc = initModelCache()
-    let r1 = newRelation(varList, @[VariableIndex(0)])
-    let r2 = newRelation(varList, @[VariableIndex(1)])
+    let r1 = initRelation(@[VariableIndex(0)])
+    let r2 = initRelation(@[VariableIndex(1)])
     let m1 = initModel(@[r1])
     let m2 = initModel(@[r2])
     discard mc.put(m1, varList)
@@ -309,13 +309,13 @@ suite "Model cache clear":
 suite "Cache edge cases":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
   test "relation cache handles empty relation":
     var rc = initRelationCache()
-    let r = newRelation(varList, @[])
+    let r = initRelation(@[])
     discard rc.put(r)
     check rc.len == 1
     let result = rc.get(@[])
@@ -324,8 +324,8 @@ suite "Cache edge cases":
 
   test "model cache handles independence model":
     var mc = initModelCache()
-    let r1 = newRelation(varList, @[VariableIndex(0)])
-    let r2 = newRelation(varList, @[VariableIndex(1)])
+    let r1 = initRelation(@[VariableIndex(0)])
+    let r2 = initRelation(@[VariableIndex(1)])
     let m = initModel(@[r1, r2])
     discard mc.put(m, varList)
     let name = m.printName(varList)
@@ -335,7 +335,7 @@ suite "Cache edge cases":
 
   test "model cache handles saturated model":
     var mc = initModelCache()
-    let r = newRelation(varList, @[VariableIndex(0), VariableIndex(1), VariableIndex(2)])
+    let r = initRelation(@[VariableIndex(0), VariableIndex(1), VariableIndex(2)])
     let m = initModel(@[r])
     discard mc.put(m, varList)
     let name = m.printName(varList)
@@ -345,14 +345,14 @@ suite "Cache edge cases":
 
   test "multiple puts of same relation are idempotent":
     var rc = initRelationCache()
-    let r = newRelation(varList, @[VariableIndex(0)])
+    let r = initRelation(@[VariableIndex(0)])
     for i in 0..<10:
       discard rc.put(r)
     check rc.len == 1
 
   test "multiple puts of same model are idempotent":
     var mc = initModelCache()
-    let r = newRelation(varList, @[VariableIndex(0)])
+    let r = initRelation(@[VariableIndex(0)])
     let m = initModel(@[r])
     for i in 0..<10:
       discard mc.put(m, varList)

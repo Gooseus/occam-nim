@@ -55,12 +55,6 @@ func initVariable*(name, abbrev: string; cardinality: Cardinality;
   result.shift = BitShift(0)
   result.mask = KeySegment(0)
 
-# Deprecated alias
-func newVariable*(name, abbrev: string; cardinality: Cardinality;
-                  isDependent = false): Variable {.deprecated: "Use initVariable instead".} =
-  initVariable(name, abbrev, cardinality, isDependent)
-
-
 func initVariableList*(capacity = 16): VariableList =
   ## Initialize an empty variable list
   result.variables = newSeqOfCap[Variable](capacity)

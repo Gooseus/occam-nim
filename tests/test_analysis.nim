@@ -19,8 +19,8 @@ proc makeDirectedVarList(ivCount: int): VariableList =
   result = initVariableList()
   for i in 0..<ivCount:
     let name = $chr(ord('A') + i)
-    discard result.add(newVariable(name, name, Cardinality(2)))
-  discard result.add(newVariable("Z", "Z", Cardinality(2), isDependent = true))
+    discard result.add(initVariable(name, name, Cardinality(2)))
+  discard result.add(initVariable("Z", "Z", Cardinality(2), isDependent = true))
 
 
 proc makeUniformData(varList: VariableList): Table =
@@ -237,8 +237,8 @@ suite "Confusion matrix - perfect predictor":
 suite "Confusion matrix - labels":
   test "uses variable value labels when available":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    var dvVar = newVariable("Z", "Z", Cardinality(2), isDependent = true)
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    var dvVar = initVariable("Z", "Z", Cardinality(2), isDependent = true)
     dvVar.valueMap = @["No", "Yes"]
     discard varList.add(dvVar)
 

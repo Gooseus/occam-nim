@@ -29,14 +29,14 @@ proc loadPrimesDataset(filename: string): (VariableList, coretable.Table) =
     let abbrev = v["abbrev"].getStr()
     let card = v["cardinality"].getInt()
     let isDep = v["isDependent"].getBool()
-    discard varList.add(newVariable(name, abbrev, Cardinality(card), isDep))
+    discard varList.add(initVariable(name, abbrev, Cardinality(card), isDep))
 
   # Build frequency table from data
   # First pass: count frequencies
   var freqMap = stdtables.initTable[Key, float64]()
 
   for row in js["data"]:
-    var k = newKey(varList.keySize)
+    var k = initKey(varList.keySize)
     for i in 0..<row.len:
       let val = row[i].getInt() - 1  # Convert 1-indexed to 0-indexed
       k.setValue(varList, VariableIndex(i), val)

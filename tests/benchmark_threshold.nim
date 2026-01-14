@@ -20,7 +20,7 @@ proc makeVarList(nvars, card: int): VariableList =
   result = initVariableList()
   for i in 0..<nvars:
     let name = $chr(ord('A') + i)
-    discard result.add(newVariable(name, name, Cardinality(card)))
+    discard result.add(initVariable(name, name, Cardinality(card)))
 
 
 proc makeRandomTable(varList: VariableList; seed: int = 42): coretable.Table =

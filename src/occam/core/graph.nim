@@ -44,11 +44,6 @@ func initGraph*(nodeCount: int): Graph =
   for i in 0..<nodeCount:
     result.adjList[i] = @[]
 
-# Deprecated alias
-func newGraph*(nodeCount: int): Graph {.deprecated: "Use initGraph instead".} =
-  initGraph(nodeCount)
-
-
 proc addEdge*(g: var Graph; u, v: int) =
   ## Add an undirected edge between u and v
   ## Does not check for duplicates

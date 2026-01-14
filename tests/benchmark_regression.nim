@@ -33,7 +33,7 @@ proc makeTestVarList(n: int; cardinality = 3): VariableList =
   result = initVariableList()
   for i in 0..<n:
     let name = $chr(ord('A') + i)
-    discard result.add(newVariable(name, name, Cardinality(cardinality)))
+    discard result.add(initVariable(name, name, Cardinality(cardinality)))
 
 
 proc makeRandomTable(varList: VariableList; seed: int = 42): coretable.Table =
@@ -161,7 +161,7 @@ proc runAllTests(baseline: JsonNode): seq[RegressionResult] =
   echo "  [2/8] Key operations..."
   block:
     let varList = makeTestVarList(6, 4)
-    var k = newKey(varList.keySize)
+    var k = initKey(varList.keySize)
     for i in 0..<6:
       k.setValue(varList, VariableIndex(i), i mod 4)
 

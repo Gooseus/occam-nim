@@ -81,7 +81,7 @@ proc makeTestVarList(n: int; cardinality = 4): VariableList =
   result = initVariableList()
   for i in 0..<n:
     let name = $chr(ord('A') + i)
-    discard result.add(newVariable(name, name, Cardinality(cardinality)))
+    discard result.add(initVariable(name, name, Cardinality(cardinality)))
 
 
 proc makeTestTable(varList: VariableList; seed: int = 42): coretable.Table =
@@ -131,7 +131,7 @@ proc benchmarkKeyOps() =
 
   # Benchmark Key.getValue
   block:
-    var k = newKey(keySize)
+    var k = initKey(keySize)
     for i in 0..<6:
       k.setValue(varList, VariableIndex(i), i mod 4)
 
@@ -147,7 +147,7 @@ proc benchmarkKeyOps() =
 
   # Benchmark Key.setValue
   block:
-    var k = newKey(keySize)
+    var k = initKey(keySize)
     let ops = 6 * 10000
     let r = runBenchmark("Key.setValue", ops, WarmupRuns, BenchmarkRuns) do ():
       for iter in 0..<10000:
@@ -158,7 +158,7 @@ proc benchmarkKeyOps() =
 
   # Benchmark Key.applyMask (project to 3 variables)
   block:
-    var k = newKey(keySize)
+    var k = initKey(keySize)
     for i in 0..<6:
       k.setValue(varList, VariableIndex(i), i mod 4)
     let mask = varList.buildMask(@[VariableIndex(0), VariableIndex(2), VariableIndex(4)])
@@ -174,8 +174,8 @@ proc benchmarkKeyOps() =
 
   # Benchmark Key.matches
   block:
-    var k1 = newKey(keySize)
-    var k2 = newKey(keySize)
+    var k1 = initKey(keySize)
+    var k2 = initKey(keySize)
     for i in 0..<6:
       k1.setValue(varList, VariableIndex(i), i mod 4)
       k2.setValue(varList, VariableIndex(i), i mod 4)
@@ -192,8 +192,8 @@ proc benchmarkKeyOps() =
 
   # Benchmark Key comparison (<)
   block:
-    var k1 = newKey(keySize)
-    var k2 = newKey(keySize)
+    var k1 = initKey(keySize)
+    var k2 = initKey(keySize)
     for i in 0..<6:
       k1.setValue(varList, VariableIndex(i), 1)
       k2.setValue(varList, VariableIndex(i), 2)

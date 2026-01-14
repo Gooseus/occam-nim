@@ -20,14 +20,14 @@ proc loadPrimesDataset(filename: string): (VariableList, coretable.Table) =
 
   var varList = initVariableList()
   for v in js["variables"]:
-    discard varList.add(newVariable(
+    discard varList.add(initVariable(
       v["name"].getStr(), v["abbrev"].getStr(),
       Cardinality(v["cardinality"].getInt()), v["isDependent"].getBool()
     ))
 
   var freqMap = stdtables.initTable[Key, float64]()
   for row in js["data"]:
-    var k = newKey(varList.keySize)
+    var k = initKey(varList.keySize)
     for i in 0..<row.len:
       k.setValue(varList, VariableIndex(i), row[i].getInt() - 1)
     freqMap.mgetOrPut(k, 0.0) += 1.0

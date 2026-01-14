@@ -15,9 +15,9 @@ import ../src/occam/manager/vb
 # Helper to create test data
 proc setupTestData(): (VariableList, Table) =
   var varList = initVariableList()
-  discard varList.add(newVariable("A", "A", Cardinality(2)))
-  discard varList.add(newVariable("B", "B", Cardinality(2)))
-  discard varList.add(newVariable("C", "C", Cardinality(2)))
+  discard varList.add(initVariable("A", "A", Cardinality(2)))
+  discard varList.add(initVariable("B", "B", Cardinality(2)))
+  discard varList.add(initVariable("C", "C", Cardinality(2)))
 
   # Create test data
   var inputTable = initContingencyTable(varList.keySize)
@@ -238,9 +238,9 @@ suite "Fit - Statistics":
 suite "Fit - Directed System":
   test "directed system fit":
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("Z", "Z", Cardinality(2), isDependent = true))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("Z", "Z", Cardinality(2), isDependent = true))
 
     var inputTable = initContingencyTable(varList.keySize)
     inputTable.add(varList.buildKey(@[(VariableIndex(0), 0), (VariableIndex(1), 0), (VariableIndex(2), 0)]), 30.0)

@@ -19,9 +19,9 @@ randomize(42)
 suite "Independent model":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
   test "generates valid samples":
     let model = createIndependentModel(varList)
@@ -69,9 +69,9 @@ suite "Independent model":
 suite "Chain model (Markov chain)":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
   test "chain model has structure A→B→C":
     let model = createChainModel(varList, 0.9)
@@ -118,9 +118,9 @@ suite "Star model":
   setup:
     var varList = initVariableList()
     # Center variable must be first (index 0) for correct sampling order
-    discard varList.add(newVariable("B", "B", Cardinality(2)))  # Center at index 0
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("C", "C", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))  # Center at index 0
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("C", "C", Cardinality(2)))
 
   test "star model with B as center":
     let model = createStarModel(varList, VariableIndex(0), 0.9)  # B is at index 0
@@ -151,8 +151,8 @@ suite "Star model":
 suite "Convert to table":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
   test "table has correct sum":
     let model = createIndependentModel(varList)
@@ -173,8 +173,8 @@ suite "Convert to table":
 suite "Reproducibility":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(3)))
-    discard varList.add(newVariable("B", "B", Cardinality(3)))
+    discard varList.add(initVariable("A", "A", Cardinality(3)))
+    discard varList.add(initVariable("B", "B", Cardinality(3)))
 
   test "same seed gives same samples":
     randomize(123)

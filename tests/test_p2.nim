@@ -12,7 +12,7 @@ suite "Pearson Chi-Squared (P2)":
 
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(4)))
+    discard varList.add(initVariable("A", "A", Cardinality(4)))
 
   test "P2 formula: sum of (O-E)^2 / E":
     # Simple case: 4 cells

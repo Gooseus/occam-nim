@@ -265,7 +265,7 @@ proc parseVariableSpec*(spec: string): VariableList {.raises: [ValueError].} =
     let abbrev = trimmed[0..<colonIdx].strip()
     let cardStr = trimmed[(colonIdx+1)..^1].strip()
     let card = parseInt(cardStr)
-    discard result.add(newVariable(abbrev, abbrev, Cardinality(card)))
+    discard result.add(initVariable(abbrev, abbrev, Cardinality(card)))
 
 
 proc parseModelSpec*(varList: VariableList; modelSpec: string): seq[Relation] {.raises: [ValueError].} =
@@ -284,7 +284,7 @@ proc parseModelSpec*(varList: VariableList; modelSpec: string): seq[Relation] {.
       else:
         raise newException(ValueError, "Unknown variable abbreviation: " & $c)
     if varIndices.len > 0:
-      result.add(newRelation(varList, varIndices))
+      result.add(initRelation(varIndices))
 
 
 proc createRandomMarginal(varList: VariableList; varIndices: seq[VariableIndex];
@@ -526,7 +526,7 @@ proc createModelFromSpec*(varList: VariableList; modelSpec: string;
   ##   "AB:BC:AC" -> triangle (loop)
 
   let relations = parseModelSpec(varList, modelSpec)
-  let model = newModel(relations)
+  let model = initModel(relations)
   let loopFlag = hasLoops(model, varList)
 
   if loopFlag:

@@ -12,7 +12,7 @@ import ../src/occam/math/entropy
 suite "Shannon entropy":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(4)))
+    discard varList.add(initVariable("A", "A", Cardinality(4)))
 
   test "entropy of uniform distribution":
     # Uniform distribution over 4 states: H = log2(4) = 2.0
@@ -69,7 +69,7 @@ suite "Shannon entropy":
 suite "Transmission (KL divergence)":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(4)))
+    discard varList.add(initVariable("A", "A", Cardinality(4)))
 
   test "transmission of identical distributions":
     # KL(P||P) = 0
@@ -120,8 +120,8 @@ suite "Transmission (KL divergence)":
 suite "Mutual information (as transmission)":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(2)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(2)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
   test "mutual information of independent variables":
     # For independent variables: I(A;B) = H(AB) - H(A|B) * ...
@@ -162,8 +162,8 @@ suite "Mutual information (as transmission)":
 suite "Max entropy":
   setup:
     var varList = initVariableList()
-    discard varList.add(newVariable("A", "A", Cardinality(3)))
-    discard varList.add(newVariable("B", "B", Cardinality(2)))
+    discard varList.add(initVariable("A", "A", Cardinality(3)))
+    discard varList.add(initVariable("B", "B", Cardinality(2)))
 
   test "max entropy equals log2 of state space":
     # For 3x2=6 states, max entropy is log2(6)
