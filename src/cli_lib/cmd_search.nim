@@ -24,6 +24,7 @@ proc search*(input: string;
              width = 3;
              levels = 7;
              sort = "ddf";
+             reference = "";
              parallel = true;
              verbose = false;
              showProgress = true;
@@ -38,6 +39,7 @@ proc search*(input: string;
   ##   width: Number of models to keep at each level
   ##   levels: Maximum search levels
   ##   sort: Statistic to sort by (ddf, aic, bic)
+  ##   reference: Custom reference model (e.g., "AB:BC"), empty for default
   ##   parallel: Use parallel search (default: true, uses all CPU cores)
   ##   verbose: Show detailed output
   ##   showProgress: Show progress during search (default: true)
@@ -132,10 +134,22 @@ proc search*(input: string;
     return 0
 
   # Get starting model for non-chain searches
-  let startModel = if direction == "up":
-    mgr.bottomRefModel
+  var startModel: Model
+  if reference != "":
+    # Validate and use custom reference model
+    let validation = mgr.validateReferenceModel(reference)
+    if not validation.isValid:
+      echo &"Error: Invalid reference model: {validation.errorMessage}"
+      return 1
+    startModel = validation.model
+    if verbose:
+      echo &"Using custom reference model: {reference}"
   else:
-    mgr.topRefModel
+    # Use default reference model based on direction
+    startModel = if direction == "up":
+      mgr.bottomRefModel
+    else:
+      mgr.topRefModel
 
   # Convert filter string to SearchFilter enum
   let searchFilter = case filter

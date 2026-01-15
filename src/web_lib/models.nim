@@ -49,11 +49,12 @@ type
   # Search
   SearchRequest* = object
     data*: string
-    direction*: string  # "up" or "down"
-    filter*: string     # "loopless", "full", "disjoint", "chain"
+    direction*: string      # "up" or "down"
+    filter*: string         # "loopless", "full", "disjoint", "chain"
     width*: int
     levels*: int
-    sortBy*: string     # "ddf", "aic", "bic"
+    sortBy*: string         # "ddf", "aic", "bic"
+    referenceModel*: string # Custom reference model (e.g., "AB:BC"), empty for default
 
   SearchResponse* = object
     results*: seq[SearchResultItem]
@@ -106,6 +107,7 @@ proc initSearchRequest*(): SearchRequest =
   result.width = 3
   result.levels = 7
   result.sortBy = "bic"
+  result.referenceModel = ""
 
 # jsony hook for SearchRequest defaults
 # Note: jsony will use defaults from initSearchRequest if fields are missing

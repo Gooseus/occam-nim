@@ -40,6 +40,7 @@ export interface SearchParams {
   width: number;
   levels: number;
   sortBy: 'bic' | 'aic' | 'ddf';
+  referenceModel: string;  // Custom reference model (e.g., "AB:BC"), empty for default
 }
 
 /** For WebSocket requests - includes data payload */

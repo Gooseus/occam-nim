@@ -20,6 +20,7 @@ type
     width*: int             ## Search width
     levels*: int            ## Max search levels
     sortBy*: string         ## "bic", "aic", "ddf"
+    referenceModel*: string ## Custom reference model (e.g., "AB:BC"), empty for default
 
   WSClientMessage* = object
     ## Parsed message from WebSocket client
@@ -115,7 +116,8 @@ proc parseWSMessage*(jsonStr: string): WSClientMessage =
             filter: payload.getOrDefault("filter").getStr("loopless"),
             width: payload.getOrDefault("width").getInt(3),
             levels: payload.getOrDefault("levels").getInt(7),
-            sortBy: payload.getOrDefault("sortBy").getStr("bic")
+            sortBy: payload.getOrDefault("sortBy").getStr("bic"),
+            referenceModel: payload.getOrDefault("referenceModel").getStr("")
           )
       of "search_cancel":
         result.kind = wsmSearchCancel

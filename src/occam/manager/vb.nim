@@ -227,6 +227,64 @@ proc parseModel*(mgr: var VBManager; name: string): Model =
   mgr.makeModel(name)
 
 
+# ============ Reference Model Validation ============
+
+type
+  ModelValidationResult* = object
+    ## Result of validating a reference model string
+    isValid*: bool
+    model*: Model
+    errorMessage*: string
+
+
+proc validateReferenceModel*(mgr: var VBManager; notation: string): ModelValidationResult =
+  ## Validate and parse a reference model notation string.
+  ##
+  ## Returns a ModelValidationResult with:
+  ## - isValid: true if notation is valid or empty
+  ## - model: the parsed Model (empty if notation was empty)
+  ## - errorMessage: description of validation error (empty if valid)
+  ##
+  ## Empty or whitespace-only notation is valid and means "use default".
+  ## Invalid variable abbreviations will result in an error.
+  ##
+  ## Example:
+  ##   let result = mgr.validateReferenceModel("AB:BC")
+  ##   if result.isValid:
+  ##     let model = result.model
+  ##   else:
+  ##     echo result.errorMessage
+
+  # Empty or whitespace-only is valid (means use default)
+  let trimmed = notation.strip()
+  if trimmed.len == 0:
+    return ModelValidationResult(
+      isValid: true,
+      model: initModel(@[]),
+      errorMessage: ""
+    )
+
+  # Validate each character in the notation before parsing
+  let parts = trimmed.split(':')
+  for part in parts:
+    for c in part:
+      let idxOpt = mgr.varList.findByAbbrev($c)
+      if idxOpt.isNone:
+        return ModelValidationResult(
+          isValid: false,
+          model: initModel(@[]),
+          errorMessage: "Unknown variable abbreviation: " & $c
+        )
+
+  # All characters valid - parse the model
+  let model = mgr.parseModel(trimmed)
+  ModelValidationResult(
+    isValid: true,
+    model: model,
+    errorMessage: ""
+  )
+
+
 # ============ Statistics Computation ============
 
 # Forward declaration for makeFitTable (defined later, used by computeH for loops)

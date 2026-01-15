@@ -48,10 +48,12 @@ proc wsSearchHandler*(ctx: Context) {.async.} =
 
       case clientMsg.kind
       of wsmSearchStart:
-        echo "[WS] Search request - direction: ", clientMsg.payload.direction, 
+        echo "[WS] Search request - direction: ", clientMsg.payload.direction,
              ", filter: ", clientMsg.payload.filter,
-             ", width: ", clientMsg.payload.width, 
+             ", width: ", clientMsg.payload.width,
              ", levels: ", clientMsg.payload.levels
+        if clientMsg.payload.referenceModel.len > 0:
+          echo "[WS]   reference model: ", clientMsg.payload.referenceModel
 
         # Create send function that sends via WebSocket
         # Note: We use waitFor to ensure messages are sent immediately
@@ -69,7 +71,8 @@ proc wsSearchHandler*(ctx: Context) {.async.} =
           filter: clientMsg.payload.filter,
           width: clientMsg.payload.width,
           levels: clientMsg.payload.levels,
-          sortBy: clientMsg.payload.sortBy
+          sortBy: clientMsg.payload.sortBy,
+          referenceModel: clientMsg.payload.referenceModel
         )
 
         try:

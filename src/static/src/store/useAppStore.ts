@@ -57,6 +57,7 @@ interface AppState {
   setSearchResults: (results: SearchResult[], totalEvaluated: number) => void;
   setSearchError: (error: SearchError | null) => void;
   setSearchParams: (params: Partial<SearchParams>) => void;
+  setReferenceModelFromResults: (model: string) => void;
   resetSearch: () => void;
 
   // Fit state
@@ -80,6 +81,7 @@ const DEFAULT_SEARCH_PARAMS: SearchParams = {
   width: 3,
   levels: 7,
   sortBy: 'bic',
+  referenceModel: '',
 };
 
 export const useAppStore = create<AppState>()(
@@ -148,6 +150,11 @@ export const useAppStore = create<AppState>()(
       setSearchParams: (params) =>
         set((state) => ({
           searchParams: { ...state.searchParams, ...params },
+        })),
+      setReferenceModelFromResults: (model) =>
+        set((state) => ({
+          searchParams: { ...state.searchParams, referenceModel: model },
+          activeTab: 'search',
         })),
       resetSearch: () =>
         set({

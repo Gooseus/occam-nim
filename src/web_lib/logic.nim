@@ -171,11 +171,18 @@ proc processSearch*(req: SearchRequest): SearchResponse =
     of "ddf": SearchDDF
     else: SearchBIC
 
-  # Get starting model based on direction
-  let startModel = if req.direction == "down":
-    mgr.topRefModel
+  # Get starting model - use custom reference model if provided, otherwise default
+  var startModel: Model
+  if req.referenceModel.len > 0:
+    let validation = mgr.validateReferenceModel(req.referenceModel)
+    if not validation.isValid:
+      raise newException(ValueError, "Invalid reference model: " & validation.errorMessage)
+    startModel = validation.model
   else:
-    mgr.bottomRefModel
+    startModel = if req.direction == "down":
+      mgr.topRefModel
+    else:
+      mgr.bottomRefModel
 
   # Run parallel search
   let searchDir = if req.direction == "down": Direction.Descending else: Direction.Ascending
@@ -237,11 +244,18 @@ proc processSearchWithProgress*(req: SearchRequest; progressConfig: ProgressConf
     of "ddf": SearchDDF
     else: SearchBIC
 
-  # Get starting model based on direction
-  let startModel = if req.direction == "down":
-    mgr.topRefModel
+  # Get starting model - use custom reference model if provided, otherwise default
+  var startModel: Model
+  if req.referenceModel.len > 0:
+    let validation = mgr.validateReferenceModel(req.referenceModel)
+    if not validation.isValid:
+      raise newException(ValueError, "Invalid reference model: " & validation.errorMessage)
+    startModel = validation.model
   else:
-    mgr.bottomRefModel
+    startModel = if req.direction == "down":
+      mgr.topRefModel
+    else:
+      mgr.bottomRefModel
 
   # Run parallel search with progress AND timing
   let searchDir = if req.direction == "down": Direction.Descending else: Direction.Ascending

@@ -41,6 +41,7 @@ export function ResultsTab() {
   const searchTotalEvaluated = useAppStore((s) => s.searchTotalEvaluated);
   const fitHistory = useAppStore((s) => s.fitHistory);
   const selectModelFromResults = useAppStore((s) => s.selectModelFromResults);
+  const setReferenceModelFromResults = useAppStore((s) => s.setReferenceModelFromResults);
   const setActiveTab = useAppStore((s) => s.setActiveTab);
 
   const [viewMode, setViewMode] = useState<ViewMode>('table');
@@ -137,12 +138,21 @@ export function ResultsTab() {
                           </span>
                         </td>
                         <td style={styles.td}>
-                          <button
-                            onClick={() => selectModelFromResults(r.model)}
-                            style={styles.fitBtn}
-                          >
-                            Fit
-                          </button>
+                          <div style={styles.actionBtns}>
+                            <button
+                              onClick={() => selectModelFromResults(r.model)}
+                              style={styles.fitBtn}
+                            >
+                              Fit
+                            </button>
+                            <button
+                              onClick={() => setReferenceModelFromResults(r.model)}
+                              style={styles.refBtn}
+                              title="Use this model as reference for next search"
+                            >
+                              Ref
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -340,6 +350,19 @@ const styles: Record<string, React.CSSProperties> = {
     background: colors.bgCard,
     color: colors.primary,
     cursor: 'pointer',
+  },
+  refBtn: {
+    padding: `${spacing.xs} ${spacing.sm}`,
+    fontSize: '0.7rem',
+    border: '1px solid #666',
+    borderRadius: '3px',
+    background: colors.bgCard,
+    color: '#666',
+    cursor: 'pointer',
+  },
+  actionBtns: {
+    display: 'flex',
+    gap: '4px',
   },
   export: {
     borderTop: `1px solid ${colors.borderLight}`,

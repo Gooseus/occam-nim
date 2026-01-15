@@ -185,6 +185,75 @@ suite "WebSocket Server Messages - Serialization":
     check parsed["error"]["message"].getStr() == "Invalid model notation"
 
 
+suite "WebSocket Client Messages - Reference Model":
+
+  test "parseWSMessage parses search_start with referenceModel":
+    # Arrange
+    let jsonStr = """{
+      "type": "search_start",
+      "requestId": "test-ref",
+      "payload": {
+        "data": "{\"name\":\"test\"}",
+        "direction": "up",
+        "filter": "loopless",
+        "width": 3,
+        "levels": 7,
+        "sortBy": "bic",
+        "referenceModel": "AB:BC"
+      }
+    }"""
+
+    # Act
+    let msg = parseWSMessage(jsonStr)
+
+    # Assert
+    check msg.kind == wsmSearchStart
+    check msg.payload.referenceModel == "AB:BC"
+
+  test "parseWSMessage handles empty referenceModel":
+    # Arrange
+    let jsonStr = """{
+      "type": "search_start",
+      "requestId": "test-empty",
+      "payload": {
+        "data": "{}",
+        "direction": "up",
+        "filter": "loopless",
+        "width": 3,
+        "levels": 7,
+        "sortBy": "bic",
+        "referenceModel": ""
+      }
+    }"""
+
+    # Act
+    let msg = parseWSMessage(jsonStr)
+
+    # Assert
+    check msg.payload.referenceModel == ""
+
+  test "parseWSMessage handles missing referenceModel (defaults to empty)":
+    # Arrange - no referenceModel field in payload
+    let jsonStr = """{
+      "type": "search_start",
+      "requestId": "test-missing",
+      "payload": {
+        "data": "{}",
+        "direction": "up",
+        "filter": "loopless",
+        "width": 3,
+        "levels": 7,
+        "sortBy": "bic"
+      }
+    }"""
+
+    # Act
+    let msg = parseWSMessage(jsonStr)
+
+    # Assert
+    check msg.payload.referenceModel == ""
+
+
 suite "WebSocket Message Round-Trip":
 
   test "search_start payload survives round-trip":
@@ -195,7 +264,8 @@ suite "WebSocket Message Round-Trip":
       filter: "full",
       width: 5,
       levels: 10,
-      sortBy: "aic"
+      sortBy: "aic",
+      referenceModel: ""
     )
 
     # Act - serialize then parse back
@@ -208,7 +278,8 @@ suite "WebSocket Message Round-Trip":
         "filter": originalPayload.filter,
         "width": originalPayload.width,
         "levels": originalPayload.levels,
-        "sortBy": originalPayload.sortBy
+        "sortBy": originalPayload.sortBy,
+        "referenceModel": originalPayload.referenceModel
       }
     })
     let parsed = parseWSMessage(jsonStr)
@@ -220,3 +291,35 @@ suite "WebSocket Message Round-Trip":
     check parsed.payload.width == originalPayload.width
     check parsed.payload.levels == originalPayload.levels
     check parsed.payload.sortBy == originalPayload.sortBy
+    check parsed.payload.referenceModel == originalPayload.referenceModel
+
+  test "search_start with referenceModel survives round-trip":
+    # Arrange
+    let originalPayload = WSSearchPayload(
+      data: "{\"variables\":[]}",
+      direction: "up",
+      filter: "loopless",
+      width: 3,
+      levels: 7,
+      sortBy: "bic",
+      referenceModel: "AB:BC:AC"
+    )
+
+    # Act - serialize then parse back
+    let jsonStr = $(%*{
+      "type": "search_start",
+      "requestId": "round-trip-ref-test",
+      "payload": {
+        "data": originalPayload.data,
+        "direction": originalPayload.direction,
+        "filter": originalPayload.filter,
+        "width": originalPayload.width,
+        "levels": originalPayload.levels,
+        "sortBy": originalPayload.sortBy,
+        "referenceModel": originalPayload.referenceModel
+      }
+    })
+    let parsed = parseWSMessage(jsonStr)
+
+    # Assert
+    check parsed.payload.referenceModel == "AB:BC:AC"

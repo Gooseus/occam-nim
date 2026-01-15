@@ -49,6 +49,7 @@ export function SearchTab() {
             width: searchParams.width,
             levels: searchParams.levels,
             sortBy: searchParams.sortBy,
+            referenceModel: searchParams.referenceModel,
           },
         })
       );

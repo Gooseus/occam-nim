@@ -107,6 +107,29 @@ export function SearchParams({ params, onChange, disabled }: SearchParamsProps) 
           />
         </div>
       </div>
+
+      {/* Reference Model */}
+      <div style={styles.row}>
+        <div style={{ ...styles.field, flex: '1 1 100%' }}>
+          <label style={styles.label}>
+            Reference Model
+            <span style={styles.optional}>(optional)</span>
+          </label>
+          <input
+            type="text"
+            value={params.referenceModel}
+            onChange={(e) => updateParam('referenceModel', e.target.value)}
+            disabled={disabled}
+            placeholder="e.g., AB:BC or leave empty for default"
+            style={styles.input}
+          />
+          <div style={styles.hint}>
+            Custom starting point for search. Leave empty to use default
+            ({params.direction === 'up' ? 'independence model' : 'saturated model'}).
+            Direction still applies: "{params.direction}" will {params.direction === 'up' ? 'add' : 'remove'} relations.
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -156,5 +179,17 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '0.25rem',
     fontSize: '0.875rem',
     cursor: 'pointer',
+  },
+  optional: {
+    fontWeight: 400,
+    fontSize: '0.75rem',
+    color: '#666',
+    marginLeft: '0.5rem',
+  },
+  hint: {
+    fontSize: '0.75rem',
+    color: '#666',
+    marginTop: '0.25rem',
+    lineHeight: 1.4,
   },
 }
