@@ -58,8 +58,8 @@ task cli, "Build CLI (convenience - uses packages/occam_cli)":
   exec "nim c -d:release --threads:on -o:bin/cli src/cli.nim"
 
 task web, "Build web server (requires packages/occam_web deps)":
-  # Build frontend if npm is available (skip in CI without Node.js)
-  exec "bash -c 'if command -v npm &> /dev/null; then cd src/static && npm run build; else echo \"Skipping frontend build (npm not found)\"; fi'"
+  # Build frontend if node_modules exists (requires: cd src/static && npm install)
+  exec "bash -c 'if [ -d src/static/node_modules ]; then cd src/static && npm run build; else echo \"Skipping frontend build (run: cd src/static && npm install)\"; fi'"
   exec "nim c -d:release -d:logging --threads:on -o:bin/web src/web.nim"
 
 task mcp, "Build MCP server (requires packages/occam_mcp deps)":
