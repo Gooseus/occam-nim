@@ -8,10 +8,32 @@ interface ResultsTableProps {
   } | null;
 }
 
+// Column tooltips explaining each statistic
+const TOOLTIPS = {
+  model: 'Model structure showing variable associations (e.g., AB:BC means A-B and B-C are associated)',
+  h: 'Entropy (H): Uncertainty in the fitted distribution. Lower = more deterministic predictions.',
+  ddf: 'Delta DF: Degrees of freedom saved vs saturated model. Higher = simpler model.',
+  aic: 'Akaike Information Criterion: Balances fit and complexity. Lower = better.',
+  bic: 'Bayesian Information Criterion: Like AIC but penalizes complexity more. Lower = better.',
+  deltaBic: 'Difference from best model. 0 = best. <2 = equivalent, 2-6 = weak evidence, >10 = strong evidence against.',
+  loops: 'Whether model contains loops (cycles). Loop models require IPF fitting (slower).',
+};
+
+function Tooltip({ text, children }: { text: string; children: React.ReactNode }) {
+  return (
+    <span title={text} style={{ cursor: 'help', borderBottom: '1px dotted #999' }}>
+      {children}
+    </span>
+  );
+}
+
 export function ResultsTable({ results }: ResultsTableProps) {
-  if (!results) {
-    return null
+  if (!results || results.results.length === 0) {
+    return null;
   }
+
+  // Find best (lowest) BIC to compute ΔBIC
+  const bestBic = Math.min(...results.results.map(r => r.bic));
 
   return (
     <div style={styles.container}>
@@ -27,37 +49,71 @@ export function ResultsTable({ results }: ResultsTableProps) {
           <thead>
             <tr>
               <th style={styles.th}>#</th>
-              <th style={{ ...styles.th, textAlign: 'left' }}>Model</th>
-              <th style={styles.th}>H</th>
-              <th style={styles.th}>AIC</th>
-              <th style={styles.th}>BIC</th>
-              <th style={styles.th}>Loops</th>
+              <th style={{ ...styles.th, textAlign: 'left' }}>
+                <Tooltip text={TOOLTIPS.model}>Model</Tooltip>
+              </th>
+              <th style={styles.th}>
+                <Tooltip text={TOOLTIPS.h}>H</Tooltip>
+              </th>
+              <th style={styles.th}>
+                <Tooltip text={TOOLTIPS.ddf}>ΔDF</Tooltip>
+              </th>
+              <th style={styles.th}>
+                <Tooltip text={TOOLTIPS.deltaBic}>ΔBIC</Tooltip>
+              </th>
+              <th style={styles.th}>
+                <Tooltip text={TOOLTIPS.loops}>Loops</Tooltip>
+              </th>
             </tr>
           </thead>
           <tbody>
-            {results.results.map((item, index) => (
-              <tr key={index} style={index % 2 === 0 ? styles.trEven : styles.trOdd}>
-                <td style={styles.td}>{index + 1}</td>
-                <td style={{ ...styles.td, textAlign: 'left', fontFamily: 'monospace' }}>
-                  {item.model}
-                </td>
-                <td style={styles.td}>{item.h.toFixed(4)}</td>
-                <td style={styles.td}>{item.aic.toFixed(4)}</td>
-                <td style={styles.td}>{item.bic.toFixed(4)}</td>
-                <td style={styles.td}>
-                  {item.hasLoops ? (
-                    <span style={styles.loopYes}>Yes</span>
-                  ) : (
-                    <span style={styles.loopNo}>No</span>
-                  )}
-                </td>
-              </tr>
-            ))}
+            {results.results.map((item, index) => {
+              const deltaBic = item.bic - bestBic;
+              return (
+                <tr key={index} style={index % 2 === 0 ? styles.trEven : styles.trOdd}>
+                  <td style={styles.td}>{index + 1}</td>
+                  <td style={{ ...styles.td, textAlign: 'left', fontFamily: 'monospace' }}>
+                    {item.model}
+                  </td>
+                  <td style={styles.td}>{item.h.toFixed(4)}</td>
+                  <td style={styles.td}>{item.ddf}</td>
+                  <td style={styles.td}>
+                    <span style={deltaBicStyle(deltaBic)}>
+                      {deltaBic < 0.01 ? '0' : deltaBic.toFixed(2)}
+                    </span>
+                  </td>
+                  <td style={styles.td}>
+                    {item.hasLoops ? (
+                      <span style={styles.loopYes}>Yes</span>
+                    ) : (
+                      <span style={styles.loopNo}>No</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
+
+      <div style={styles.legend}>
+        <span style={styles.legendTitle}>ΔBIC interpretation:</span>
+        <span style={{ ...styles.legendItem, color: '#27ae60' }}>0 = best</span>
+        <span style={{ ...styles.legendItem, color: '#666' }}>&lt;2 = equivalent</span>
+        <span style={{ ...styles.legendItem, color: '#f39c12' }}>2-6 = weak evidence</span>
+        <span style={{ ...styles.legendItem, color: '#e74c3c' }}>&gt;10 = strong evidence against</span>
+      </div>
     </div>
-  )
+  );
+}
+
+// Style ΔBIC based on evidence strength
+function deltaBicStyle(deltaBic: number): React.CSSProperties {
+  if (deltaBic < 0.01) return { color: '#27ae60', fontWeight: 600 }; // Best
+  if (deltaBic < 2) return { color: '#666' }; // Essentially equivalent
+  if (deltaBic < 6) return { color: '#f39c12' }; // Weak evidence
+  if (deltaBic < 10) return { color: '#e67e22' }; // Moderate evidence
+  return { color: '#e74c3c' }; // Strong evidence against
 }
 
 const styles: Record<string, React.CSSProperties> = {
@@ -114,5 +170,23 @@ const styles: Record<string, React.CSSProperties> = {
   },
   loopNo: {
     color: '#27ae60',
+  },
+  legend: {
+    marginTop: '0.75rem',
+    padding: '0.5rem 0.75rem',
+    background: '#f8f9fa',
+    borderRadius: '4px',
+    fontSize: '0.75rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
+    flexWrap: 'wrap',
+  },
+  legendTitle: {
+    fontWeight: 600,
+    color: '#333',
+  },
+  legendItem: {
+    whiteSpace: 'nowrap',
   },
 }

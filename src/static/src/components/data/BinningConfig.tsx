@@ -34,13 +34,15 @@ export function BinningConfig() {
         <div style={styles.simpleMode}>
           {columnsNeedingBinning.length === 0 ? (
             <p style={styles.noAction}>
-              All columns have reasonable cardinality. No binning needed.
+              No binning applied. Use Advanced Mode to bin high-cardinality columns if needed.
             </p>
           ) : (
             <p style={styles.summary}>
-              {columnsNeedingBinning.length} column(s) have high cardinality and will be auto-binned:
+              {columnsNeedingBinning.length} column(s) have high cardinality ({'>'}10 values):
               {' '}
               <strong>{columnsNeedingBinning.map((c) => c.name).join(', ')}</strong>
+              <br />
+              <span style={{ color: '#856404' }}>Consider excluding or binning these columns via Advanced Mode.</span>
             </p>
           )}
         </div>

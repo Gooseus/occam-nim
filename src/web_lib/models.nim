@@ -62,6 +62,7 @@ type
   SearchResultItem* = object
     model*: string
     h*: float64
+    ddf*: int64
     aic*: float64
     bic*: float64
     hasLoops*: bool

@@ -21,7 +21,10 @@ interface AppState {
 
   // Data state
   fileName: string | null;
+  rawColumns: string[];
+  rawDataArray: string[][];
   columnAnalysis: ColumnAnalysis[];
+  excludedColumns: string[];
   binConfigs: Record<string, BinConfig>;
   processedDataSpec: DataSpec | null;
   isProcessing: boolean;
@@ -29,7 +32,10 @@ interface AppState {
 
   // Data actions
   setFileName: (name: string | null) => void;
+  setRawData: (columns: string[], dataArray: string[][]) => void;
   setColumnAnalysis: (analysis: ColumnAnalysis[]) => void;
+  toggleColumnExclusion: (columnName: string) => void;
+  setExcludedColumns: (columns: string[]) => void;
   setBinConfig: (columnName: string, config: BinConfig) => void;
   setBinConfigs: (configs: Record<string, BinConfig>) => void;
   setProcessedDataSpec: (spec: DataSpec | null) => void;
@@ -85,7 +91,10 @@ export const useAppStore = create<AppState>()(
 
       // Data state
       fileName: null,
+      rawColumns: [],
+      rawDataArray: [],
       columnAnalysis: [],
+      excludedColumns: [],
       binConfigs: {},
       processedDataSpec: null,
       isProcessing: false,
@@ -93,7 +102,15 @@ export const useAppStore = create<AppState>()(
 
       // Data actions
       setFileName: (name) => set({ fileName: name }),
+      setRawData: (columns, dataArray) => set({ rawColumns: columns, rawDataArray: dataArray }),
       setColumnAnalysis: (analysis) => set({ columnAnalysis: analysis }),
+      toggleColumnExclusion: (columnName) =>
+        set((state) => ({
+          excludedColumns: state.excludedColumns.includes(columnName)
+            ? state.excludedColumns.filter((c) => c !== columnName)
+            : [...state.excludedColumns, columnName],
+        })),
+      setExcludedColumns: (columns) => set({ excludedColumns: columns }),
       setBinConfig: (columnName, config) =>
         set((state) => ({
           binConfigs: { ...state.binConfigs, [columnName]: config },
@@ -105,7 +122,10 @@ export const useAppStore = create<AppState>()(
       clearData: () =>
         set({
           fileName: null,
+          rawColumns: [],
+          rawDataArray: [],
           columnAnalysis: [],
+          excludedColumns: [],
           binConfigs: {},
           processedDataSpec: null,
           dataError: null,
@@ -165,6 +185,7 @@ export const useAppStore = create<AppState>()(
         activeTab: state.activeTab,
         fileName: state.fileName,
         columnAnalysis: state.columnAnalysis,
+        excludedColumns: state.excludedColumns,
         binConfigs: state.binConfigs,
         processedDataSpec: state.processedDataSpec,
         searchResults: state.searchResults,

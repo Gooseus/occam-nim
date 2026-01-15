@@ -1,14 +1,20 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import { CsvDropzone } from './CsvDropzone';
 import { ColumnPreview } from './ColumnPreview';
 import { BinningConfig } from './BinningConfig';
 import { DataPreview } from './DataPreview';
+import { applyBinning } from '../../lib/binning';
 
 export function DataTab() {
   const fileName = useAppStore((s) => s.fileName);
+  const rawColumns = useAppStore((s) => s.rawColumns);
+  const rawDataArray = useAppStore((s) => s.rawDataArray);
   const columnAnalysis = useAppStore((s) => s.columnAnalysis);
+  const excludedColumns = useAppStore((s) => s.excludedColumns);
+  const binConfigs = useAppStore((s) => s.binConfigs);
   const processedDataSpec = useAppStore((s) => s.processedDataSpec);
+  const setProcessedDataSpec = useAppStore((s) => s.setProcessedDataSpec);
   const isProcessing = useAppStore((s) => s.isProcessing);
   const dataError = useAppStore((s) => s.dataError);
   const clearData = useAppStore((s) => s.clearData);
@@ -16,6 +22,27 @@ export function DataTab() {
 
   const hasData = columnAnalysis.length > 0;
   const isReady = processedDataSpec !== null;
+
+  // Track if this is the initial mount to avoid re-processing on first render
+  const isInitialMount = useRef(true);
+
+  // Re-process data when exclusions change
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    // Only re-process if we have raw data
+    if (rawColumns.length === 0 || rawDataArray.length === 0 || columnAnalysis.length === 0) {
+      return;
+    }
+
+    console.log('[DataTab] Re-processing data with exclusions:', excludedColumns);
+    const newDataSpec = applyBinning(rawColumns, rawDataArray, binConfigs, columnAnalysis, excludedColumns);
+    newDataSpec.name = fileName?.replace(/\.[^/.]+$/, '') || 'data';
+    setProcessedDataSpec(newDataSpec);
+  }, [excludedColumns, rawColumns, rawDataArray, binConfigs, columnAnalysis, fileName, setProcessedDataSpec]);
 
   return (
     <div style={styles.container}>
@@ -27,7 +54,7 @@ export function DataTab() {
             <div style={styles.fileInfo}>
               <span style={styles.fileName}>{fileName}</span>
               <span style={styles.stats}>
-                {columnAnalysis.length} columns, {columnAnalysis[0]?.totalCount || 0} rows
+                {columnAnalysis.length - excludedColumns.length} of {columnAnalysis.length} columns, {columnAnalysis[0]?.totalCount || 0} rows
               </span>
             </div>
             <button onClick={clearData} style={styles.clearBtn}>

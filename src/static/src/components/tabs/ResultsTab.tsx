@@ -5,6 +5,37 @@ import { colors, spacing, commonStyles } from '../../lib/theme';
 
 type ViewMode = 'table' | 'lattice';
 
+// Column tooltips explaining each statistic
+const TOOLTIPS = {
+  model: 'Model structure showing variable associations (e.g., AB:BC means A-B and B-C are associated)',
+  h: 'Entropy (H): Uncertainty in the fitted distribution. Lower = more deterministic.',
+  t: 'Transmission (T): Information gained by the model. Higher = better predictive power.',
+  df: 'Degrees of Freedom: Model complexity. Lower = simpler model.',
+  ddf: 'Delta DF: Degrees of freedom saved vs saturated model. Higher = simpler.',
+  lr: 'Likelihood Ratio (G²): Goodness of fit statistic. Lower = better fit.',
+  aic: 'Akaike Information Criterion: Balances fit and complexity. Lower = better.',
+  bic: 'Bayesian Information Criterion: Like AIC but penalizes complexity more. Lower = better.',
+  deltaBic: 'Difference from best model. 0 = best. <2 = equivalent, 2-6 = weak evidence, >10 = strong.',
+  alpha: 'P-value: Probability of observed data under the model. Higher = better fit.',
+  loops: 'Whether model contains loops. Loop models require IPF fitting (slower).',
+};
+
+function Tooltip({ text, children }: { text: string; children: React.ReactNode }) {
+  return (
+    <span title={text} style={{ cursor: 'help', borderBottom: '1px dotted #999' }}>
+      {children}
+    </span>
+  );
+}
+
+function deltaBicStyle(deltaBic: number): React.CSSProperties {
+  if (deltaBic < 0.01) return { color: '#27ae60', fontWeight: 600 };
+  if (deltaBic < 2) return { color: '#666' };
+  if (deltaBic < 6) return { color: '#f39c12' };
+  if (deltaBic < 10) return { color: '#e67e22' };
+  return { color: '#e74c3c' };
+}
+
 export function ResultsTab() {
   const searchResults = useAppStore((s) => s.searchResults);
   const searchTotalEvaluated = useAppStore((s) => s.searchTotalEvaluated);
@@ -17,6 +48,7 @@ export function ResultsTab() {
   const hasSearchResults = searchResults.length > 0;
   const hasFitHistory = fitHistory.length > 0;
   const currentBest = searchResults[0]?.model;
+  const bestBic = hasSearchResults ? Math.min(...searchResults.map(r => r.bic)) : 0;
 
   if (!hasSearchResults && !hasFitHistory) {
     return (
@@ -72,43 +104,59 @@ export function ResultsTab() {
           </div>
 
           {viewMode === 'table' ? (
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.th}>#</th>
-                  <th style={styles.th}>Model</th>
-                  <th style={styles.th}>H</th>
-                  <th style={styles.th}>AIC</th>
-                  <th style={styles.th}>BIC</th>
-                  <th style={styles.th}>Loops</th>
-                  <th style={styles.th}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {searchResults.map((r, i) => (
-                  <tr key={r.model} style={i % 2 === 0 ? {} : styles.altRow}>
-                    <td style={styles.tdRank}>{i + 1}</td>
-                    <td style={styles.tdModel}>{r.model}</td>
-                    <td style={styles.td}>{r.h.toFixed(4)}</td>
-                    <td style={styles.td}>{r.aic.toFixed(2)}</td>
-                    <td style={styles.td}>{r.bic.toFixed(2)}</td>
-                    <td style={styles.td}>
-                      <span style={r.hasLoops ? styles.loopsYes : styles.loopsNo}>
-                        {r.hasLoops ? 'Yes' : 'No'}
-                      </span>
-                    </td>
-                    <td style={styles.td}>
-                      <button
-                        onClick={() => selectModelFromResults(r.model)}
-                        style={styles.fitBtn}
-                      >
-                        Fit
-                      </button>
-                    </td>
+            <>
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th style={styles.th}>#</th>
+                    <th style={styles.th}><Tooltip text={TOOLTIPS.model}>Model</Tooltip></th>
+                    <th style={styles.th}><Tooltip text={TOOLTIPS.h}>H</Tooltip></th>
+                    <th style={styles.th}><Tooltip text={TOOLTIPS.ddf}>ΔDF</Tooltip></th>
+                    <th style={styles.th}><Tooltip text={TOOLTIPS.deltaBic}>ΔBIC</Tooltip></th>
+                    <th style={styles.th}><Tooltip text={TOOLTIPS.loops}>Loops</Tooltip></th>
+                    <th style={styles.th}></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {searchResults.map((r, i) => {
+                    const deltaBic = r.bic - bestBic;
+                    return (
+                      <tr key={r.model} style={i % 2 === 0 ? {} : styles.altRow}>
+                        <td style={styles.tdRank}>{i + 1}</td>
+                        <td style={styles.tdModel}>{r.model}</td>
+                        <td style={styles.td}>{r.h.toFixed(4)}</td>
+                        <td style={styles.td}>{r.ddf}</td>
+                        <td style={styles.td}>
+                          <span style={deltaBicStyle(deltaBic)}>
+                            {deltaBic < 0.01 ? '0' : deltaBic.toFixed(2)}
+                          </span>
+                        </td>
+                        <td style={styles.td}>
+                          <span style={r.hasLoops ? styles.loopsYes : styles.loopsNo}>
+                            {r.hasLoops ? 'Yes' : 'No'}
+                          </span>
+                        </td>
+                        <td style={styles.td}>
+                          <button
+                            onClick={() => selectModelFromResults(r.model)}
+                            style={styles.fitBtn}
+                          >
+                            Fit
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <div style={styles.legend}>
+                <span style={styles.legendTitle}>ΔBIC:</span>
+                <span style={{ ...styles.legendItem, color: '#27ae60' }}>0 = best</span>
+                <span style={{ ...styles.legendItem, color: '#666' }}>&lt;2 = equiv</span>
+                <span style={{ ...styles.legendItem, color: '#f39c12' }}>2-6 = weak</span>
+                <span style={{ ...styles.legendItem, color: '#e74c3c' }}>&gt;10 = strong</span>
+              </div>
+            </>
           ) : (
             <ModelLatticeContainer
               searchResults={searchResults}
@@ -130,14 +178,13 @@ export function ResultsTab() {
           <table style={styles.table}>
             <thead>
               <tr>
-                <th style={styles.th}>Model</th>
-                <th style={styles.th}>H</th>
-                <th style={styles.th}>T</th>
-                <th style={styles.th}>DF</th>
-                <th style={styles.th}>LR</th>
-                <th style={styles.th}>AIC</th>
-                <th style={styles.th}>BIC</th>
-                <th style={styles.th}>p-value</th>
+                <th style={styles.th}><Tooltip text={TOOLTIPS.model}>Model</Tooltip></th>
+                <th style={styles.th}><Tooltip text={TOOLTIPS.h}>H</Tooltip></th>
+                <th style={styles.th}><Tooltip text={TOOLTIPS.t}>T</Tooltip></th>
+                <th style={styles.th}><Tooltip text={TOOLTIPS.ddf}>ΔDF</Tooltip></th>
+                <th style={styles.th}><Tooltip text={TOOLTIPS.lr}>LR</Tooltip></th>
+                <th style={styles.th}><Tooltip text={TOOLTIPS.bic}>BIC</Tooltip></th>
+                <th style={styles.th}><Tooltip text={TOOLTIPS.alpha}>p-value</Tooltip></th>
               </tr>
             </thead>
             <tbody>
@@ -149,9 +196,8 @@ export function ResultsTab() {
                   <td style={styles.tdModel}>{r.model}</td>
                   <td style={styles.td}>{r.h.toFixed(4)}</td>
                   <td style={styles.td}>{r.t.toFixed(4)}</td>
-                  <td style={styles.td}>{r.df}</td>
+                  <td style={styles.td}>{r.ddf}</td>
                   <td style={styles.td}>{r.lr.toFixed(2)}</td>
-                  <td style={styles.td}>{r.aic.toFixed(2)}</td>
                   <td style={styles.td}>{r.bic.toFixed(2)}</td>
                   <td style={styles.td}>{r.alpha.toExponential(2)}</td>
                 </tr>
@@ -301,5 +347,23 @@ const styles: Record<string, React.CSSProperties> = {
   },
   exportBtn: {
     ...commonStyles.buttonBase,
+  },
+  legend: {
+    marginTop: spacing.sm,
+    padding: `${spacing.xs} ${spacing.sm}`,
+    background: colors.bgHover,
+    borderRadius: '4px',
+    fontSize: '0.7rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: spacing.md,
+    flexWrap: 'wrap',
+  },
+  legendTitle: {
+    fontWeight: 600,
+    color: colors.text,
+  },
+  legendItem: {
+    whiteSpace: 'nowrap',
   },
 };

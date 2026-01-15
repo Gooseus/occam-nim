@@ -9,6 +9,7 @@
 *.exe
 *.dylib
 *.so
+*.js.bak
 
 # Nim build cache
 nimcache/
@@ -56,6 +57,7 @@ nimblecache/
 
 # Scratch directory (ephemeral docs, commit drafts, etc.)
 scratch/
+screenshots/
 
 # Large benchmark data files (generated/downloadable)
 /data/*

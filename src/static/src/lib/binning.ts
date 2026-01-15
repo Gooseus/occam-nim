@@ -46,19 +46,19 @@ export function analyzeColumns(columns: string[], data: string[][]): AnalysisRes
       }
     }
 
-    // Get top values sorted by frequency
-    const topValues = Array.from(freqMap.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([value, count]) => ({ value, count }));
-
     const uniqueCount = freqMap.size;
     const needsBinning = uniqueCount > CARDINALITY_THRESHOLD;
 
-    let suggestedStrategy: BinStrategy = 'none';
-    if (needsBinning) {
-      suggestedStrategy = isNumeric ? 'equalWidth' : 'topN';
-    }
+    // Get values sorted by frequency
+    // Keep ALL values if under threshold (no binning needed), otherwise top 10 for display
+    const maxValues = needsBinning ? 10 : uniqueCount;
+    const topValues = Array.from(freqMap.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, maxValues)
+      .map(([value, count]) => ({ value, count }));
+
+    // No auto-binning - user can opt-in via Advanced Mode if needed
+    const suggestedStrategy: BinStrategy = 'none';
 
     const colAnalysis: ColumnAnalysis = {
       name: colName,
@@ -76,16 +76,12 @@ export function analyzeColumns(columns: string[], data: string[][]): AnalysisRes
 
     analysis.push(colAnalysis);
 
-    // Create suggested config
+    // Create config with no binning by default
     const config: BinConfig = {
       ...DEFAULT_BIN_CONFIG,
-      strategy: suggestedStrategy,
-      numBins: needsBinning ? 5 : uniqueCount,
+      strategy: 'none',
+      numBins: uniqueCount,
     };
-
-    if (suggestedStrategy === 'topN') {
-      config.topN = 5;
-    }
 
     suggestedConfigs[colName] = config;
   }
@@ -157,16 +153,27 @@ export function applyBinning(
   columns: string[],
   data: string[][],
   configs: Record<string, BinConfig>,
-  analysis: ColumnAnalysis[]
+  analysis: ColumnAnalysis[],
+  excludedColumns: string[] = []
 ): DataSpec {
+  const excludedSet = new Set(excludedColumns);
   const usedAbbrevs = new Set<string>();
   const variables: VariableSpec[] = [];
   const binnedData: string[][] = [];
-  const valueMappers: Array<(val: string) => string> = [];
+  const valueMappers: Array<{ mapper: (val: string) => string; index: number } | null> = [];
+  const includedIndices: number[] = [];
 
-  // Build variable specs and mappers
+  // Build variable specs and mappers for included columns only
   for (let i = 0; i < columns.length; i++) {
     const colName = columns[i];
+
+    // Skip excluded columns
+    if (excludedSet.has(colName)) {
+      valueMappers.push(null);
+      continue;
+    }
+
+    includedIndices.push(i);
     const config = configs[colName] || DEFAULT_BIN_CONFIG;
     const colAnalysis = analysis[i];
     const abbrev = generateAbbrev(colName, usedAbbrevs);
@@ -236,12 +243,15 @@ export function applyBinning(
       values,
       isDependent: false,
     });
-    valueMappers.push(mapper);
+    valueMappers.push({ mapper, index: i });
   }
 
-  // Apply binning to data
+  // Get only the non-null mappers (for included columns)
+  const activeMappers = valueMappers.filter((m): m is { mapper: (val: string) => string; index: number } => m !== null);
+
+  // Apply binning to data (only included columns)
   for (const row of data) {
-    const binnedRow = row.map((val, i) => valueMappers[i](val));
+    const binnedRow = activeMappers.map(({ mapper, index }) => mapper(row[index]));
     // Skip rows with empty values (excluded missing)
     if (binnedRow.some((v) => v === '')) continue;
     binnedData.push(binnedRow);

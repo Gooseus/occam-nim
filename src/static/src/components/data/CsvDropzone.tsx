@@ -1,28 +1,70 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import Papa from 'papaparse';
 import { useAppStore } from '../../store/useAppStore';
 import { analyzeColumns, applyBinning } from '../../lib/binning';
-import { loadNimBinning, isNimBinningAvailable, nimAnalyzeColumns, nimApplyBinning } from '../../lib/nimBinning';
+
+/**
+ * Generate Excel-style column names: A, B, C, ..., Z, AA, AB, ...
+ */
+function generateExcelColumnName(index: number): string {
+  let name = '';
+  let n = index;
+  while (n >= 0) {
+    name = String.fromCharCode(65 + (n % 26)) + name;
+    n = Math.floor(n / 26) - 1;
+  }
+  return name;
+}
+
+/**
+ * Detect if the first row is a header by checking if its values are unique
+ * (don't appear elsewhere in the data). Header labels typically only appear
+ * once, while data values repeat across rows.
+ */
+function detectHeader(allRows: string[][]): boolean {
+  if (allRows.length < 2) return false;
+
+  const firstRow = allRows[0];
+  const dataRows = allRows.slice(1);
+
+  let uniqueToFirstRow = 0;
+  let appearsInData = 0;
+
+  for (let colIdx = 0; colIdx < firstRow.length; colIdx++) {
+    const firstRowValue = firstRow[colIdx]?.trim();
+    if (!firstRowValue) continue;
+
+    // Check if this value appears anywhere in the rest of the data for this column
+    const foundInData = dataRows.some(row => row[colIdx]?.trim() === firstRowValue);
+
+    if (foundInData) {
+      appearsInData++;
+    } else {
+      uniqueToFirstRow++;
+    }
+  }
+
+  // If most first-row values don't appear elsewhere, it's a header
+  // Use > 50% threshold to be confident
+  const totalChecked = uniqueToFirstRow + appearsInData;
+  if (totalChecked === 0) return false;
+
+  const uniqueRatio = uniqueToFirstRow / totalChecked;
+  console.log(`[HeaderDetection] ${uniqueToFirstRow}/${totalChecked} first-row values are unique (${(uniqueRatio * 100).toFixed(1)}%)`);
+
+  return uniqueRatio > 0.5;
+}
 
 export function CsvDropzone() {
   const setFileName = useAppStore((s) => s.setFileName);
+  const setRawData = useAppStore((s) => s.setRawData);
   const setColumnAnalysis = useAppStore((s) => s.setColumnAnalysis);
   const setBinConfigs = useAppStore((s) => s.setBinConfigs);
   const setProcessedDataSpec = useAppStore((s) => s.setProcessedDataSpec);
   const setIsProcessing = useAppStore((s) => s.setIsProcessing);
   const setDataError = useAppStore((s) => s.setDataError);
-
-  // Try to load Nim binning module on mount
-  useEffect(() => {
-    loadNimBinning().then((success) => {
-      if (success) {
-        console.log('[CsvDropzone] Nim binning module available');
-      } else {
-        console.log('[CsvDropzone] Using TypeScript fallback');
-      }
-    });
-  }, []);
+  const setExcludedColumns = useAppStore((s) => s.setExcludedColumns);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -33,14 +75,37 @@ export function CsvDropzone() {
       setDataError(null);
       setFileName(file.name);
 
+      // First pass: parse without headers to detect if first row is a header
       Papa.parse(file, {
-        header: true,
+        header: false,
         skipEmptyLines: true,
         worker: true,
         complete: (results) => {
           try {
-            const columns = results.meta.fields || [];
-            const data = results.data as Record<string, string>[];
+            const rawData = results.data as string[][];
+
+            if (rawData.length === 0) {
+              setDataError('No data found in CSV');
+              setIsProcessing(false);
+              return;
+            }
+
+            const hasHeader = detectHeader(rawData);
+
+            let columns: string[];
+            let dataArray: string[][];
+
+            if (hasHeader) {
+              // First row is header
+              columns = rawData[0];
+              dataArray = rawData.slice(1);
+              console.log('[CsvDropzone] Detected header row:', columns);
+            } else {
+              // No header - generate Excel-style column names
+              columns = rawData[0].map((_, i) => generateExcelColumnName(i));
+              dataArray = rawData;
+              console.log('[CsvDropzone] No header detected, generated columns:', columns);
+            }
 
             if (columns.length === 0) {
               setDataError('No columns found in CSV');
@@ -48,38 +113,22 @@ export function CsvDropzone() {
               return;
             }
 
-            // Convert to array format for analysis
-            const dataArray = data.map((row) =>
-              columns.map((col) => row[col] ?? '')
-            );
+            // Store raw data for re-processing when exclusions change
+            setRawData(columns, dataArray);
+            setExcludedColumns([]); // Reset exclusions for new file
 
-            // Try Nim module first, fall back to TypeScript
-            let analysis, suggestedConfigs, dataSpec;
+            // Analyze columns (TypeScript only since Nim binning is disabled)
+            const tsResult = analyzeColumns(columns, dataArray);
+            const analysis = tsResult.analysis;
+            const suggestedConfigs = tsResult.suggestedConfigs;
 
-            if (isNimBinningAvailable()) {
-              const nimResult = nimAnalyzeColumns(columns, dataArray);
-              if (nimResult) {
-                analysis = nimResult.analysis;
-                suggestedConfigs = nimResult.suggestedConfigs;
-                const nimDataSpec = nimApplyBinning(columns, dataArray, suggestedConfigs);
-                if (nimDataSpec) {
-                  dataSpec = nimDataSpec;
-                }
-              }
-            }
-
-            // Fallback to TypeScript if Nim failed or unavailable
-            if (!analysis || !dataSpec) {
-              const tsResult = analyzeColumns(columns, dataArray);
-              analysis = tsResult.analysis;
-              suggestedConfigs = tsResult.suggestedConfigs;
-              dataSpec = applyBinning(columns, dataArray, suggestedConfigs, analysis);
-            }
+            // Process with no excluded columns initially
+            const dataSpec = applyBinning(columns, dataArray, suggestedConfigs, analysis, []);
 
             setColumnAnalysis(analysis);
-            setBinConfigs(suggestedConfigs!);
-            dataSpec!.name = file.name.replace(/\.[^/.]+$/, '');
-            setProcessedDataSpec(dataSpec!);
+            setBinConfigs(suggestedConfigs);
+            dataSpec.name = file.name.replace(/\.[^/.]+$/, '');
+            setProcessedDataSpec(dataSpec);
 
             setIsProcessing(false);
           } catch (err) {
@@ -93,7 +142,7 @@ export function CsvDropzone() {
         },
       });
     },
-    [setFileName, setColumnAnalysis, setBinConfigs, setProcessedDataSpec, setIsProcessing, setDataError]
+    [setFileName, setRawData, setColumnAnalysis, setBinConfigs, setProcessedDataSpec, setIsProcessing, setDataError, setExcludedColumns]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

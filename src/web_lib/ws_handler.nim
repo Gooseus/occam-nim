@@ -85,7 +85,7 @@ proc wsSearchHandler*(ctx: Context) {.async.} =
               h: item.h,
               aic: item.aic,
               bic: item.bic,
-              ddf: 0.0,  # Not in SearchResultItem currently
+              ddf: item.ddf.float64,
               hasLoops: item.hasLoops
             ))
 

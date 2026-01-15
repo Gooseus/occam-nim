@@ -192,6 +192,7 @@ proc processSearch*(req: SearchRequest): SearchResponse =
     let item = SearchResultItem(
       model: candidate.model.printName(varList),
       h: mgr.computeH(candidate.model),
+      ddf: mgr.computeDDF(candidate.model),
       aic: mgr.computeAIC(candidate.model),
       bic: mgr.computeBIC(candidate.model),
       hasLoops: candidate.model.hasLoops(varList)
@@ -258,6 +259,7 @@ proc processSearchWithProgress*(req: SearchRequest; progressConfig: ProgressConf
     let item = SearchResultItem(
       model: candidate.model.printName(varList),
       h: mgr.computeH(candidate.model),
+      ddf: mgr.computeDDF(candidate.model),
       aic: mgr.computeAIC(candidate.model),
       bic: mgr.computeBIC(candidate.model),
       hasLoops: candidate.model.hasLoops(varList)
