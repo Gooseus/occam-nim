@@ -119,7 +119,7 @@ proc samplesToTable*(gm: GraphicalModel; samples: seq[seq[int]]): coretable.Cont
     else:
       counts[sample] = 1.0
 
-  result = coretable.initTable(gm.varList.keySize, counts.len)
+  result = coretable.initContingencyTable(gm.varList.keySize, counts.len)
 
   for state, count in counts:
     var k = initKey(gm.varList.keySize)
@@ -295,7 +295,7 @@ proc createRandomMarginal(varList: VariableList; varIndices: seq[VariableIndex];
   for vi in varIndices:
     stateCount *= varList[vi].cardinality.toInt
 
-  result = coretable.initTable(varList.keySize, stateCount)
+  result = coretable.initContingencyTable(varList.keySize, stateCount)
 
   # Generate random probabilities
   var probs = newSeq[float64](stateCount)
@@ -347,7 +347,7 @@ proc createDependentMarginal(varList: VariableList; varIndices: seq[VariableInde
   # Create mask for the marginal projection
   let mask = varList.buildMask(varIndices)
 
-  result = coretable.initTable(varList.keySize, stateCount)
+  result = coretable.initContingencyTable(varList.keySize, stateCount)
 
   # Enumerate all states and compute conditional probabilities
   var stateIndices = newSeq[int](varIndices.len)
@@ -418,7 +418,7 @@ proc computeFullStateSpace(varList: VariableList): coretable.ContingencyTable =
   for i in 0..<varList.len:
     stateCount *= varList[VariableIndex(i)].cardinality.toInt
 
-  result = coretable.initTable(varList.keySize, stateCount)
+  result = coretable.initContingencyTable(varList.keySize, stateCount)
   let prob = 1.0 / float64(stateCount)
 
   var stateIndices = newSeq[int](varList.len)
@@ -498,7 +498,7 @@ proc samplesToTable*(tbm: TableBasedModel; samples: seq[seq[int]]): coretable.Co
     else:
       counts[sample] = 1.0
 
-  result = coretable.initTable(tbm.varList.keySize, counts.len)
+  result = coretable.initContingencyTable(tbm.varList.keySize, counts.len)
 
   for state, count in counts:
     var k = initKey(tbm.varList.keySize)
@@ -574,7 +574,7 @@ proc createModelFromSpec*(varList: VariableList; modelSpec: string;
           scaleFactors[keyStr] = targetTup.value / currentVal
 
         # Apply scaling to each cell in the joint
-        var newTable = coretable.initTable(varList.keySize, fitTable.len)
+        var newTable = coretable.initContingencyTable(varList.keySize, fitTable.len)
         for tup in fitTable:
           let projKey = tup.key.applyMask(mask)
           var keyStr = ""

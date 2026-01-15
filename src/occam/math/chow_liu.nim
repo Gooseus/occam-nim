@@ -16,7 +16,7 @@
 ##   let tree = chowLiu(table, varList)
 ##   let model = treeToModel(tree, varList)
 
-import std/[algorithm, math]
+import std/[algorithm]
 import ../core/types
 import ../core/variable
 import ../core/table as coretable

@@ -20,6 +20,8 @@ export function SearchTab() {
   const setSearchError = useAppStore((s) => s.setSearchError);
   const resetSearch = useAppStore((s) => s.resetSearch);
   const setActiveTab = useAppStore((s) => s.setActiveTab);
+  const selectModelFromResults = useAppStore((s) => s.selectModelFromResults);
+  const setReferenceModelFromResults = useAppStore((s) => s.setReferenceModelFromResults);
 
   const wsRef = useRef<WebSocket | null>(null);
   const requestIdRef = useRef<string | null>(null);
@@ -203,6 +205,8 @@ export function SearchTab() {
             results: searchResults,
             totalEvaluated: searchTotalEvaluated,
           }}
+          onFitModel={selectModelFromResults}
+          onSetReference={setReferenceModelFromResults}
         />
       )}
     </div>

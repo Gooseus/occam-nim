@@ -6,6 +6,8 @@ interface ResultsTableProps {
     results: SearchResult[];
     totalEvaluated: number;
   } | null;
+  onFitModel?: (model: string) => void;
+  onSetReference?: (model: string) => void;
 }
 
 // Column tooltips explaining each statistic
@@ -20,14 +22,39 @@ const TOOLTIPS = {
 };
 
 function Tooltip({ text, children }: { text: string; children: React.ReactNode }) {
+  const [show, setShow] = React.useState(false);
   return (
-    <span title={text} style={{ cursor: 'help', borderBottom: '1px dotted #999' }}>
+    <span
+      style={{ cursor: 'help', borderBottom: '1px dotted #999', position: 'relative' }}
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+    >
       {children}
+      {show && (
+        <div style={{
+          position: 'absolute',
+          bottom: '100%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: '#333',
+          color: 'white',
+          padding: '6px 10px',
+          borderRadius: '4px',
+          fontSize: '0.75rem',
+          whiteSpace: 'nowrap',
+          zIndex: 1000,
+          marginBottom: '4px',
+          maxWidth: '300px',
+          textAlign: 'center',
+        }}>
+          {text}
+        </div>
+      )}
     </span>
   );
 }
 
-export function ResultsTable({ results }: ResultsTableProps) {
+export function ResultsTable({ results, onFitModel, onSetReference }: ResultsTableProps) {
   if (!results || results.results.length === 0) {
     return null;
   }
@@ -59,11 +86,15 @@ export function ResultsTable({ results }: ResultsTableProps) {
                 <Tooltip text={TOOLTIPS.ddf}>ΔDF</Tooltip>
               </th>
               <th style={styles.th}>
+                <Tooltip text={TOOLTIPS.aic}>AIC</Tooltip>
+              </th>
+              <th style={styles.th}>
                 <Tooltip text={TOOLTIPS.deltaBic}>ΔBIC</Tooltip>
               </th>
               <th style={styles.th}>
                 <Tooltip text={TOOLTIPS.loops}>Loops</Tooltip>
               </th>
+              {(onFitModel || onSetReference) && <th style={styles.th}></th>}
             </tr>
           </thead>
           <tbody>
@@ -77,6 +108,7 @@ export function ResultsTable({ results }: ResultsTableProps) {
                   </td>
                   <td style={styles.td}>{item.h.toFixed(4)}</td>
                   <td style={styles.td}>{item.ddf}</td>
+                  <td style={styles.td}>{item.aic.toFixed(2)}</td>
                   <td style={styles.td}>
                     <span style={deltaBicStyle(deltaBic)}>
                       {deltaBic < 0.01 ? '0' : deltaBic.toFixed(2)}
@@ -89,6 +121,26 @@ export function ResultsTable({ results }: ResultsTableProps) {
                       <span style={styles.loopNo}>No</span>
                     )}
                   </td>
+                  {(onFitModel || onSetReference) && (
+                    <td style={styles.td}>
+                      <div style={styles.actionBtns}>
+                        {onFitModel && (
+                          <button onClick={() => onFitModel(item.model)} style={styles.fitBtn}>
+                            Fit
+                          </button>
+                        )}
+                        {onSetReference && (
+                          <button
+                            onClick={() => onSetReference(item.model)}
+                            style={styles.refBtn}
+                            title="Use as reference model for next search"
+                          >
+                            Ref
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               );
             })}
@@ -188,5 +240,28 @@ const styles: Record<string, React.CSSProperties> = {
   },
   legendItem: {
     whiteSpace: 'nowrap',
+  },
+  actionBtns: {
+    display: 'flex',
+    gap: '4px',
+    justifyContent: 'flex-end',
+  },
+  fitBtn: {
+    padding: '4px 8px',
+    fontSize: '0.7rem',
+    border: '1px solid #3498db',
+    borderRadius: '3px',
+    background: 'white',
+    color: '#3498db',
+    cursor: 'pointer',
+  },
+  refBtn: {
+    padding: '4px 8px',
+    fontSize: '0.7rem',
+    border: '1px solid #666',
+    borderRadius: '3px',
+    background: 'white',
+    color: '#666',
+    cursor: 'pointer',
   },
 }

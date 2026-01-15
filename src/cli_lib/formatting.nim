@@ -6,7 +6,6 @@
 ## - Table formatting
 
 import std/[strformat, strutils]
-import ../occam/core/types
 import ../occam/core/variable
 import ../occam/core/model
 import ../occam/manager/vb

@@ -12,7 +12,6 @@ import ../occam/core/key
 import ../occam/core/profile
 import ../occam/io/parser
 import ../occam/manager/vb
-import ../occam/manager/fitting
 import formatting
 
 
@@ -326,7 +325,7 @@ proc tableCmd*(input: string;
   var inputTable = spec.toTable(varList)
 
   # Create manager
-  var mgr = newVBManager(varList, inputTable)
+  var mgr = initVBManager(varList, inputTable)
 
   # Parse the model
   let m = mgr.makeModel(model)

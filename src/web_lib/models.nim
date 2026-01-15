@@ -2,9 +2,6 @@
 ##
 ## These types define the JSON structure for API requests and responses.
 
-import std/json
-import jsony
-
 type
   # Health check
   HealthResponse* = object

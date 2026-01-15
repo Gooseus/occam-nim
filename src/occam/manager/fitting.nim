@@ -13,11 +13,8 @@ import ../core/table as coretable
 import ../core/relation
 import ../core/model
 import ../core/junction_tree
-import ../core/results
 import ../core/errors
 import ../core/iterators
-import ../math/entropy
-import ../math/statistics as mathstats
 import ../math/ipf
 import ../math/belief_propagation as bp
 
@@ -27,7 +24,7 @@ import ../math/belief_propagation as bp
 proc fitIndependenceModel*(data: coretable.ContingencyTable; varList: VariableList): coretable.ContingencyTable =
   ## Compute fitted distribution for independence model
   ## P(X1, X2, ...) = P(X1) * P(X2) * ...
-  result = coretable.initTable(varList.keySize)
+  result = coretable.initContingencyTable(varList.keySize)
 
   # Get marginals for each variable
   var marginals: seq[coretable.ContingencyTable]
@@ -216,7 +213,7 @@ proc fitModelTable*(data: coretable.ContingencyTable; model: Model; varList: Var
 proc computeResiduals*(observed: coretable.ContingencyTable; fitted: coretable.ContingencyTable;
                        varList: VariableList): coretable.ContingencyTable =
   ## Compute residuals (observed - fitted) for each cell
-  result = coretable.initTable(varList.keySize)
+  result = coretable.initContingencyTable(varList.keySize)
 
   # For each cell in observed data
   for tup in observed:

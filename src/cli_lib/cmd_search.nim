@@ -3,7 +3,7 @@
 ## Implements the main search command for exploring model space
 ## Uses parallelization by default for optimal performance.
 
-import std/[strformat, strutils, algorithm, cpuinfo, os, json]
+import std/[strformat, algorithm, cpuinfo, os, json]
 import ../occam/core/types
 import ../occam/core/variable
 import ../occam/core/table as coretable
@@ -81,7 +81,7 @@ proc search*(input: string;
     echo ""
 
   # Create manager for reference models and chain search
-  var mgr = newVBManager(varList, inputTable)
+  var mgr = initVBManager(varList, inputTable)
 
   # Set search direction
   if direction == "up":

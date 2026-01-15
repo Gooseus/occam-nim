@@ -3,7 +3,7 @@
 
 {.push raises: [].}
 
-import std/[algorithm, sets, tables, hashes, options, deques]
+import std/[algorithm, sets, hashes, options, deques]
 import ../core/types
 import ../core/variable
 import ../core/relation
@@ -16,7 +16,7 @@ type
     hasLoops*: bool
     level*: int  # Distance from independence model
 
-proc hashModel(m: Model): Hash =
+proc hashModel(m: Model): Hash {.used.} =
   ## Hash a model by its relation structure
   var h: Hash = 0
   for rel in m.relations:
@@ -105,8 +105,6 @@ proc generateChildren*(m: Model; varList: VariableList): seq[Model] =
   ## Generate all immediate child models (one step down the lattice)
   ## Children are formed by splitting relations
   result = @[]
-
-  let varCount = varList.len
 
   # For each relation with more than one variable,
   # try splitting by removing one variable

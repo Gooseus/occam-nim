@@ -21,9 +21,34 @@ const TOOLTIPS = {
 };
 
 function Tooltip({ text, children }: { text: string; children: React.ReactNode }) {
+  const [show, setShow] = React.useState(false);
   return (
-    <span title={text} style={{ cursor: 'help', borderBottom: '1px dotted #999' }}>
+    <span
+      style={{ cursor: 'help', borderBottom: '1px dotted #999', position: 'relative' }}
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+    >
       {children}
+      {show && (
+        <div style={{
+          position: 'absolute',
+          bottom: '100%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: '#333',
+          color: 'white',
+          padding: '6px 10px',
+          borderRadius: '4px',
+          fontSize: '0.75rem',
+          whiteSpace: 'nowrap',
+          zIndex: 1000,
+          marginBottom: '4px',
+          maxWidth: '300px',
+          textAlign: 'center',
+        }}>
+          {text}
+        </div>
+      )}
     </span>
   );
 }
@@ -113,6 +138,7 @@ export function ResultsTab() {
                     <th style={styles.th}><Tooltip text={TOOLTIPS.model}>Model</Tooltip></th>
                     <th style={styles.th}><Tooltip text={TOOLTIPS.h}>H</Tooltip></th>
                     <th style={styles.th}><Tooltip text={TOOLTIPS.ddf}>ΔDF</Tooltip></th>
+                    <th style={styles.th}><Tooltip text={TOOLTIPS.aic}>AIC</Tooltip></th>
                     <th style={styles.th}><Tooltip text={TOOLTIPS.deltaBic}>ΔBIC</Tooltip></th>
                     <th style={styles.th}><Tooltip text={TOOLTIPS.loops}>Loops</Tooltip></th>
                     <th style={styles.th}></th>
@@ -127,6 +153,7 @@ export function ResultsTab() {
                         <td style={styles.tdModel}>{r.model}</td>
                         <td style={styles.td}>{r.h.toFixed(4)}</td>
                         <td style={styles.td}>{r.ddf}</td>
+                        <td style={styles.td}>{r.aic.toFixed(2)}</td>
                         <td style={styles.td}>
                           <span style={deltaBicStyle(deltaBic)}>
                             {deltaBic < 0.01 ? '0' : deltaBic.toFixed(2)}

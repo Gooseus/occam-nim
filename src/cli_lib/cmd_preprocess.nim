@@ -12,11 +12,7 @@
 ## reducing file size by 10-100x for large datasets.
 
 import std/[strformat, strutils, tables, json, os, parsecsv, streams, algorithm, sequtils]
-import ../occam/core/types
-import ../occam/core/variable
 import ../occam/io/formats as ioformats
-import ../occam/io/binning
-import ../occam/io/parser
 
 type
   InputFormat = enum

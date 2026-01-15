@@ -10,13 +10,11 @@ import ../core/key
 import ../core/table as coretable
 import ../core/relation
 import ../core/model
-import ../core/junction_tree
 import ../core/results
 import ../core/errors
 import ../core/profile
 import ../math/entropy
 import ../math/statistics as mathstats
-import ../math/ipf
 import ../math/belief_propagation as bp
 import cache
 import statistics as mgrstats
@@ -497,7 +495,7 @@ proc getRelationMetrics*(mgr: var VBManager; rel: Relation): RelationMetrics =
   let observed = mgr.computeRelationMarginal(rel)
 
   # Build independence distribution for this relation
-  var expected = coretable.initTable(mgr.varList.keySize)
+  var expected = coretable.initContingencyTable(mgr.varList.keySize)
   # Get individual variable marginals
   var varMarginals: seq[coretable.ContingencyTable] = @[]
   for varIdx in rel.varIndices:

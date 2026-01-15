@@ -14,7 +14,7 @@
 
 {.push raises: [].}
 
-import std/[monotimes, times, json, strformat, strutils, algorithm, os, math]
+import std/[monotimes, times, json, strformat, algorithm, os, math]
 
 type
   RuntimeEstimator* = object

@@ -101,7 +101,7 @@ func makeOrthoExpansion*(inputTable: coretable.ContingencyTable;
     otherSize *= varList[v].cardinality.toInt
 
   # Expand marginal to full space
-  var expanded = initTable(varList.keySize, marginal.len * otherSize)
+  var expanded = initContingencyTable(varList.keySize, marginal.len * otherSize)
 
   # Build cardinalities for other variables
   var otherCardinalities: seq[int]
@@ -186,7 +186,7 @@ proc scaleByMarginal*(fitTable: var coretable.ContingencyTable;
     newTuples.add(coretable.Tuple(key: tup.key, value: newVal))
 
   # Update fitTable in place
-  fitTable = initTable(varList.keySize, newTuples.len)
+  fitTable = initContingencyTable(varList.keySize, newTuples.len)
   for tup in newTuples:
     fitTable.add(tup)
   fitTable.sort()

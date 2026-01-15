@@ -3,9 +3,7 @@
 
 {.push raises: [].}
 
-import std/[strutils, sequtils, tables, parsecsv, streams, algorithm, os]
-import ../core/types
-import ../core/variable
+import std/[strutils, sequtils, tables, parsecsv, streams, algorithm]
 
 type
   OccamInFile* = object

@@ -4,7 +4,7 @@
 
 {.push raises: [].}
 
-import std/[strutils, algorithm, sequtils, tables, math, strformat]
+import std/[strutils, algorithm, sequtils, tables, strformat]
 import parser
 
 type

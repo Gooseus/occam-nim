@@ -3,7 +3,7 @@
 ## Provides progress output for CLI commands.
 ## Writes progress updates to stdout with formatting.
 
-import std/[strformat, terminal]
+import std/[strformat]
 import ../occam/core/progress
 
 proc makeCLIProgressCallback*(verbose = true): ProgressCallback =

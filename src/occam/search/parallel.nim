@@ -126,7 +126,7 @@ proc processOneSeedWithFilter(
   ## Each call creates its own VBManager and search object
 
   # Create thread-local VBManager
-  var mgr = newVBManager(varList, inputTable)
+  var mgr = initVBManager(varList, inputTable)
   mgr.setSearchDirection(direction)
 
   # Generate neighbors using thread-local search
@@ -178,7 +178,7 @@ proc processOneSeed*(
   ## WARNING: Not thread-safe due to closure capture
 
   # Create thread-local VBManager
-  var mgr = newVBManager(varList, inputTable)
+  var mgr = initVBManager(varList, inputTable)
 
   # Generate all neighbors
   let neighbors = neighborGen(seed)
@@ -343,7 +343,7 @@ when compileOption("threads"):
           )
           return
 
-        var mgr = newVBManager(varList, inputTable)
+        var mgr = initVBManager(varList, inputTable)
         mgr.setSearchDirection(direction)
         let name = neighbor.printName(varList)
         let statValue = mgr.computeStatistic(neighbor, stat)
@@ -397,12 +397,12 @@ when compileOption("threads"):
       stat: SearchStatistic;
       width: int;
       direction: Direction
-  ): LevelResult {.raises: [ValidationError, JunctionTreeError, ConvergenceError, ComputationError, ValueError].} =
+  ): LevelResult {.raises: [ValidationError, ValueError].} =
     ## Process one seed model with parallel neighbor evaluation
     ## Use this when there's a single seed with many neighbors (Level 1 scenario)
 
     # Create manager just for neighbor generation
-    var mgr = newVBManager(varList, inputTable)
+    var mgr = initVBManager(varList, inputTable)
     mgr.setSearchDirection(direction)
 
     # Generate neighbors

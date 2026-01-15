@@ -58,7 +58,7 @@ proc marginalize*(table: coretable.ContingencyTable;
   ## fromVars should be a superset of toVars
   if toVars.len == 0:
     # Sum to scalar
-    result = coretable.initTable(varList.keySize, 1)
+    result = coretable.initContingencyTable(varList.keySize, 1)
     var total = 0.0
     for tup in table:
       total += tup.value
@@ -95,7 +95,7 @@ proc extendPotential*(table: coretable.ContingencyTable;
   let newSize = totalStates(newCardinalities)
 
   # Extend each tuple
-  result = coretable.initTable(varList.keySize, table.len * newSize)
+  result = coretable.initContingencyTable(varList.keySize, table.len * newSize)
 
   for tup in table:
     # Enumerate all combinations of new variables using iterator
@@ -136,7 +136,7 @@ proc multiplyPotentials*(a, b: coretable.ContingencyTable;
   let bExt = extendPotential(b, varList, bVars, resultVars)
 
   # Multiply element-wise
-  result = coretable.initTable(varList.keySize, aExt.len)
+  result = coretable.initContingencyTable(varList.keySize, aExt.len)
 
   for aTup in aExt:
     let bIdx = bExt.find(aTup.key)
@@ -158,7 +158,7 @@ proc dividePotentials*(a, b: coretable.ContingencyTable;
   let bExt = extendPotential(b, varList, bVars, aVars)
 
   # Divide element-wise
-  result = coretable.initTable(varList.keySize, a.len)
+  result = coretable.initContingencyTable(varList.keySize, a.len)
 
   for aTup in a:
     let bIdx = bExt.find(aTup.key)
@@ -209,7 +209,7 @@ proc beliefPropagation*(inputTable: coretable.ContingencyTable;
   result.separatorPotentials = newSeq[coretable.ContingencyTable](jt.separators.len)
   for i, sep in jt.separators:
     if sep.variables.len == 0:
-      result.separatorPotentials[i] = coretable.initTable(varList.keySize)
+      result.separatorPotentials[i] = coretable.initContingencyTable(varList.keySize)
       let emptyKey = initKey(varList.keySize)
       result.separatorPotentials[i].add(emptyKey, 1.0)
     else:
@@ -357,7 +357,7 @@ proc computeJointFromBP*(bpResult: BPResult;
   ## P(X) = ∏ P(Cᵢ) / ∏ P(Sⱼ)
 
   if jt.cliques.len == 0:
-    return coretable.initTable(varList.keySize)
+    return coretable.initContingencyTable(varList.keySize)
 
   if jt.cliques.len == 1:
     # Single clique is the joint (possibly partial)

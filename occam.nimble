@@ -58,6 +58,7 @@ task cli, "Build CLI (convenience - uses packages/occam_cli)":
   exec "nim c -d:release --threads:on -o:bin/cli src/cli.nim"
 
 task web, "Build web server (requires packages/occam_web deps)":
+  exec "bash -c 'cd src/static && npm run build'"
   exec "nim c -d:release -d:logging --threads:on -o:bin/web src/web.nim"
 
 task mcp, "Build MCP server (requires packages/occam_mcp deps)":

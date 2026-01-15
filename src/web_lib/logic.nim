@@ -259,7 +259,7 @@ proc processSearchWithProgress*(req: SearchRequest; progressConfig: ProgressConf
 
   # Run parallel search with progress AND timing
   let searchDir = if req.direction == "down": Direction.Descending else: Direction.Ascending
-  let (candidates, timing) = parallelSearchTimed(
+  let (candidates, _) = parallelSearchTimed(
     varList, table, startModel,
     filter, stat,
     req.width, req.levels,

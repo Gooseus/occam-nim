@@ -15,7 +15,6 @@
 
 import std/[json, strutils, os, mimetypes]
 import prologue
-import prologue/websocket
 import jsony
 
 when defined(logging):

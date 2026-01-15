@@ -153,7 +153,7 @@ type
     node: int
     weight: int
 
-proc `<`(a, b: MCSNode): bool =
+proc `<`(a, b: MCSNode): bool {.used.} =
   ## For max-heap: higher weight has higher priority
   a.weight > b.weight  # Note: reversed for max behavior
 

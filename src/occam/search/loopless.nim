@@ -3,7 +3,7 @@
 
 {.push raises: [].}
 
-import std/[algorithm, options]
+import std/[options]
 import ../core/types
 import ../core/variable
 import ../core/relation

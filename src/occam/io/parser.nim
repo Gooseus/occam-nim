@@ -169,7 +169,7 @@ proc loadAndAggregate*(filename: string): (DataSpec, stdtables.Table[seq[int], f
 
 proc toTableFromFreqMap*(spec: DataSpec; freqMap: stdtables.Table[seq[int], float64]; varList: VariableList): coretable.ContingencyTable =
   ## Convert frequency map to Table
-  result = coretable.initTable(varList.keySize, freqMap.len)
+  result = coretable.initContingencyTable(varList.keySize, freqMap.len)
 
   for indices, count in freqMap:
     var k = initKey(varList.keySize)
@@ -218,7 +218,7 @@ proc toTable*(spec: DataSpec; varList: VariableList): coretable.ContingencyTable
       vmap[val] = idx
     valueMaps.add(vmap)
 
-  result = coretable.initTable(varList.keySize, spec.data.len)
+  result = coretable.initContingencyTable(varList.keySize, spec.data.len)
 
   # Process each data row
   for rowIdx, row in spec.data:

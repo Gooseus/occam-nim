@@ -3,7 +3,7 @@
 
 {.push raises: [].}
 
-import std/[algorithm, tables, sequtils]
+import std/[tables]
 import ../core/types
 import ../core/variable
 import ../core/relation
